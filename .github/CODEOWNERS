@@ -1,0 +1,17 @@
+# Global Fallback / Repository Owner (Absolute admin override for all folders)
+* @rishikumargl
+
+# Frontend Domain
+frontend/src/                        @baddipudisowmya
+
+# Backend Domain Subsystems
+backend/app/auth/                    @prithvi-pratap-GL
+backend/app/scenarios/               @rishikumargl
+backend/app/challenges/              @varshitayerva
+backend/app/evaluation/              @ShivamBhatt
+backend/app/feedback/                @pavanpane
+
+# Data & Audit Subsystems
+backend/app/progress/                @udaybhardwaj-fde
+backend/app/audit/                   @udaybhardwaj-fde
+backend/app/audit_dependency.py      @udaybhardwaj-fde
