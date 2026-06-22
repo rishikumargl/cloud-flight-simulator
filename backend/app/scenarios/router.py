@@ -9,15 +9,16 @@ from backend.app.dependencies import get_current_user, get_db
 from backend.app.audit_dependency import audit_service
 
 from .service import ScenarioService
+from .models import Mission
 from .schemas import MissionSchema
 
 router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
 
-def get_scenario_service(llm=Depends(lambda: None)) -> ScenarioService:
-    """Dependency to inject ScenarioService with LLM."""
-    # In production, llm would be injected from config
-    return ScenarioService(llm=llm)
+def get_scenario_service() -> ScenarioService:
+    """Dependency to provide ScenarioService."""
+    # LLM is injected via P2's factory inside ScenarioService.generate()
+    return ScenarioService()
 
 
 @router.post("/generate")
@@ -39,6 +40,13 @@ async def generate_scenario(
     }
 
     Response: {"success": true, "data": MissionSchema}
+
+    Process:
+    1. Validate input
+    2. Call scenario_service.generate() to get MissionSchema
+    3. Persist mission to database
+    4. Write audit event
+    5. Return mission
     """
     track = request.get("track")
     difficulty = request.get("difficulty")
@@ -50,18 +58,31 @@ async def generate_scenario(
         )
 
     try:
-        # Generate mission via scenario-generation-v1 chain
+        # Generate mission via scenario-generation-v1 LangChain chain
+        # P3 returns validated MissionSchema, does NOT persist
         mission = scenario_service.generate(
             db=db,
             user_id=current_user.user_id,
             track=track,
             difficulty=difficulty,
-            tags=[track, difficulty],
-            metadata={
-                "user_id": str(current_user.user_id),
-                "project": "cloud-flight-simulator",
-            },
         )
+
+        # Persist mission to database (API layer responsibility per P2 guidance)
+        mission_obj = Mission(
+            mission_id=mission.mission_id,
+            track=mission.track,
+            difficulty=mission.difficulty,
+            title=mission.title,
+            business_context=mission.business_context,
+            objectives=mission.objectives,
+            success_criteria=[c.model_dump() for c in mission.success_criteria],
+            time_limit_minutes=mission.time_limit_minutes,
+            generated_by=mission.generated_by,
+            created_at=mission.created_at,
+        )
+        db.add(mission_obj)
+        db.commit()
+        db.refresh(mission_obj)
 
         # Write audit event after successful generation
         audit_service.write_event(
