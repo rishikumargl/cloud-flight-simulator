@@ -12,8 +12,9 @@ def _get_required_env(key: str) -> str:
 
 
 DATABASE_URL = _get_required_env("DATABASE_URL")
-SECRET_KEY = _get_required_env("SECRET_KEY")
 
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
-REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+# Keycloak OIDC configuration
+KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "http://localhost:8081")
+KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "cloud-flight-simulator")
+KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "cloud-flight-simulator-backend")
+KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET", "")
