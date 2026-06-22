@@ -263,35 +263,56 @@ Learner Profile:
 - Average Score: {avg_score:.1f}%
 - Recent Missions: {prior_missions}
 
-Generate a new Compute Engine mission that:
-1. Teaches practical e2-micro VM skills
+Generate a NEW and UNIQUE Compute Engine mission that:
+1. Teaches DIFFERENT practical e2-micro VM skills each time
 2. Matches the {difficulty} level
-3. Avoids repeating recent missions: {prior_missions}
+3. AVOIDS these recent missions: {prior_missions}
 4. Personalizes based on learner success rate: {success_rate:.1f}%
 5. Includes hands-on GCP Console tasks
 6. Uses ONLY e2-micro machine type (free tier)
+7. Generates DYNAMIC success criteria based on the specific mission task
 
 Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
 {{
   "track": "COMPUTE",
   "difficulty": "{difficulty}",
-  "title": "Descriptive mission title (e.g., 'Launch an e2-micro Compute Engine Instance')",
-  "business_context": "Why a team needs this skill - real-world scenario using VM management",
+  "title": "UNIQUE mission title (e.g., 'Deploy Web Server', 'Configure SSH Access', 'Set Up Startup Script')",
+  "business_context": "Specific real-world scenario explaining WHY learners need this Compute Engine skill",
   "objectives": [
-    "1. Navigate to Compute Engine in GCP Console",
-    "2. Create and configure an e2-micro instance",
-    "3. Verify instance is running and accessible"
+    "1. First step to complete",
+    "2. Second step to complete",
+    "3. Third step to complete"
   ],
   "success_criteria": [
     {{
       "criterion_id": "unique-id-1",
-      "description": "e2-micro Compute Engine instance exists and is running",
+      "description": "SPECIFIC criterion for this mission (e.g., 'VM created with correct labels', 'SSH configured', 'Web server running')",
       "resource_type": "compute_instance",
       "expected_state": {{
-        "name_suffix": "server",
+        "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro"
       }},
-      "weight": 100
+      "weight": 34
+    }},
+    {{
+      "criterion_id": "unique-id-2",
+      "description": "SECOND specific criterion for this mission (testing different aspect)",
+      "resource_type": "compute_instance",
+      "expected_state": {{
+        "name_suffix": "descriptive-name-for-this-mission",
+        "machine_type": "e2-micro"
+      }},
+      "weight": 33
+    }},
+    {{
+      "criterion_id": "unique-id-3",
+      "description": "THIRD specific criterion for this mission (testing another aspect)",
+      "resource_type": "compute_instance",
+      "expected_state": {{
+        "name_suffix": "descriptive-name-for-this-mission",
+        "machine_type": "e2-micro"
+      }},
+      "weight": 33
     }}
   ],
   "time_limit_minutes": 45
@@ -299,16 +320,19 @@ Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
 
 CRITICAL RULES:
 - Track MUST be "COMPUTE"
-- Weight MUST be exactly 100 (single criterion)
+- Weights MUST sum to exactly 100 (always 34, 33, 33)
 - Use ONLY "name_suffix" in expected_state (never full resource names)
 - Machine type MUST ALWAYS be "e2-micro"
 - resource_type MUST be ONLY "compute_instance"
-- Include ONLY 1 success criterion (VM existence check)
+- Include EXACTLY 3 success criteria that test DIFFERENT aspects of THIS specific mission
+- Each criterion description MUST be specific to the mission (not generic)
 - time_limit_minutes: 30-45 for BEGINNER, 45-60 for INTERMEDIATE, 60-90 for ADVANCED
-- objectives MUST be numbered steps (3 steps)
-- business_context MUST relate to VM management
+- objectives MUST be numbered steps specific to this mission (3 steps)
+- business_context MUST be specific scenario, NOT generic VM management
+- title MUST be unique and avoid: {prior_missions}
 - Return ONLY JSON, no extra text
 - ABSOLUTELY NO other GCP services (Compute Engine only)
+- EVERY mission MUST be different - generate creative Compute Engine tasks
 """,
         )
 
