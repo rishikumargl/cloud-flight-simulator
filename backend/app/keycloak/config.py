@@ -13,18 +13,28 @@ class KeycloakConfig:
 
     @property
     def jwks_url(self) -> str:
-        """JWKS endpoint URL."""
-        return f"{self.url}/auth/realms/{self.realm}/protocol/openid-connect/certs"
+        """JWKS endpoint URL (supports Keycloak 18+ and 24+)."""
+        # Keycloak 24+ uses /realms/ instead of /auth/realms/
+        if self.url.endswith("/auth"):
+            return f"{self.url}/realms/{self.realm}/protocol/openid-connect/certs"
+        return f"{self.url}/realms/{self.realm}/protocol/openid-connect/certs"
 
     @property
     def issuer(self) -> str:
-        """Token issuer URL."""
-        return f"{self.url}/auth/realms/{self.realm}"
+        """Token issuer URL (supports Keycloak 18+ and 24+)."""
+        # Keycloak 18-23: /auth/realms/
+        # Keycloak 24+: /realms/
+        # Try 24+ format first, fall back to 18-23
+        if "/auth" in self.url:
+            return f"{self.url}/realms/{self.realm}"
+        return f"{self.url}/realms/{self.realm}"
 
     @property
     def oidc_config_url(self) -> str:
-        """OIDC discovery endpoint."""
-        return f"{self.url}/auth/realms/{self.realm}/.well-known/openid-configuration"
+        """OIDC discovery endpoint (supports Keycloak 18+ and 24+)."""
+        if self.url.endswith("/auth"):
+            return f"{self.url}/realms/{self.realm}/.well-known/openid-configuration"
+        return f"{self.url}/realms/{self.realm}/.well-known/openid-configuration"
 
 
 keycloak_config = KeycloakConfig()

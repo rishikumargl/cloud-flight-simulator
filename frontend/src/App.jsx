@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
 import useAuthStore from './hooks/useAuth';
+import keycloak from './config/keycloak';
+import api from './api/client';
 
 // Pages
 import RoleSelectionPage from './pages/RoleSelectionPage';
@@ -30,7 +32,27 @@ import AdminLearnerInsightsPage from './pages/AdminLearnerInsightsPage';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { isAuthenticated, role } = useAuthStore();
+  const [isInitializing, setIsInitializing] = useState(true);
+  const { isAuthenticated, role, setUser, setAuthenticated, setRole } = useAuthStore();
+
+  useEffect(() => {
+    keycloak
+      .init({ onLoad: 'login-required', checkLoginIframe: false })
+      .then(async (authenticated) => {
+        if (authenticated) {
+          // Call /auth/me to provision local user
+          const response = await api.get('/auth/me');
+          const user = response.data.data;
+          setUser({ id: user.user_id, email: user.email, name: user.full_name });
+          setRole(user.role);
+          setAuthenticated(true);
+        }
+        setIsInitializing(false);
+      })
+      .catch(() => {
+        setIsInitializing(false);
+      });
+  }, [setUser, setRole, setAuthenticated]);
 
   const ProtectedLayout = ({ children }) => (
     <div className="h-screen bg-cloud-50">
@@ -54,6 +76,14 @@ function App() {
     }
     return element;
   };
+
+  if (isInitializing) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Initializing authentication...</div>
+      </div>
+    );
+  }
 
   return (
     <Router>

@@ -1,4 +1,4 @@
-"""Keycloak OIDC migration Phase A: add keycloak_id, remove JWT columns
+"""Keycloak OIDC migration Phase A: add keycloak_id, keep password_hash for rollback safety
 
 Revision ID: 002
 Revises: 001
@@ -42,23 +42,17 @@ def upgrade() -> None:
         )
     )
 
-    # Step 4: Drop columns no longer needed (removed in Phase A)
-    # Note: These columns are specific to JWT-based auth, not needed with Keycloak
-    op.drop_column('users', 'password_hash')
+    # Note: password_hash is NOT dropped in Phase A.
+    # Phase B will drop password_hash after verifying all users have migrated to Keycloak.
+    # This preserves the ability to rollback if Keycloak deployment fails.
 
 
 def downgrade() -> None:
     """Reverse Keycloak migration Phase A."""
-    # Step 1: Re-add password_hash column
-    op.add_column(
-        'users',
-        sa.Column('password_hash', sa.String(255), nullable=True)
-    )
-
-    # Step 2: Remove last_login_at column
+    # Step 1: Remove last_login_at column
     op.drop_column('users', 'last_login_at')
 
-    # Step 3: Drop keycloak_id unique constraint and column
+    # Step 2: Drop keycloak_id unique constraint and column
     op.drop_constraint(
         'uq_users_keycloak_id',
         'users',
