@@ -1,6 +1,6 @@
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import useAuthStore from '../hooks/useAuth';
 
@@ -43,24 +43,15 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-sky-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-8 text-base font-medium"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Back to Role Selection
-        </button>
-
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-fade-in">
         {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-600 rounded-2xl mb-4">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-100 to-sky-100 rounded-2xl mb-4 shadow-lg border border-primary-200">
             <span className="text-3xl">⚙️</span>
           </div>
-          <h1 className="text-3xl font-bold text-cloud-900 mb-2">Administrator Login</h1>
-          <p className="text-cloud-600 text-base">Manage the Cloud Flight Simulator platform</p>
+          <h1 className="text-4xl font-bold text-cloud-900 mb-2">Administrator Login</h1>
+          <p className="text-cloud-600">Manage the Cloud Flight Simulator platform</p>
         </div>
 
         {/* Login Form */}
@@ -143,29 +134,18 @@ export default function AdminLoginPage() {
             </Button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-700 font-medium mb-2">Demo Admin Credentials:</p>
-            <p className="text-sm text-blue-600">Email: admin@example.com</p>
-            <p className="text-sm text-blue-600">Password: password123</p>
-          </div>
-
           {/* Back Link */}
-          <p className="mt-6 text-center text-cloud-600 text-base">
-            <button
-              onClick={() => navigate('/')}
-              className="text-primary-600 hover:text-primary-700 font-medium"
-            >
-              Back to Role Selection
-            </button>
-          </p>
-        </div>
-
-        {/* Security Notice */}
-        <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200 text-center">
-          <p className="text-sm text-yellow-800">
-            ⚠️ This is an admin account. Ensure you have proper authorization before accessing.
-          </p>
+          <div className="mt-8 text-center">
+            <p className="text-cloud-600 text-sm">
+              Back to{' '}
+              <button
+                onClick={() => navigate('/login')}
+                className="text-primary-600 hover:text-primary-700 font-bold transition-colors"
+              >
+                Learner Login
+              </button>
+            </p>
+          </div>
         </div>
       </div>
     </div>

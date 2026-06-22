@@ -1,7 +1,8 @@
-import { Menu, X, LogOut, Bell } from 'lucide-react';
+import { Menu, X, LogOut, Bell, Home } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import useAuthStore from '../hooks/useAuth';
+import Logo from './ui/Logo';
 
 export default function Navbar({ onMenuToggle }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,107 +13,97 @@ export default function Navbar({ onMenuToggle }) {
     onMenuToggle?.(!isOpen);
   };
 
+  const navLinks = role !== 'admin' ? [
+    { label: 'Dashboard', to: '/dashboard', icon: Home },
+    { label: 'Missions', to: '/challenges', icon: null },
+    { label: 'Progress', to: '/progress', icon: null },
+  ] : [];
+
   return (
-    <nav className="bg-white border-b border-cloud-100 sticky top-0 z-40 shadow-sm">
+    <nav className="bg-white/95 backdrop-blur-sm border-b border-cloud-100 sticky top-0 z-40 shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Menu Button */}
+          <button onClick={toggleMenu} className="p-2 hover:bg-cloud-100 rounded-lg transition-colors mr-2" title="Toggle menu">
+            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
+
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 font-bold text-xl">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center text-white">
-              ☁️
+          <Link to="/" className="flex items-center gap-2 font-bold text-xl group">
+            <div className="w-9 h-9 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg flex items-center justify-center group-hover:shadow-glow transition-all duration-300">
+              <Logo size={20} className="text-white" />
             </div>
-            <span className="text-primary-600">CloudFlight</span>
+            <span className="hidden sm:inline text-cloud-900 font-bold bg-gradient-to-r from-primary-600 to-primary-700 bg-clip-text text-transparent">
+              CloudFlight
+            </span>
           </Link>
 
-          {/* Desktop Menu - Only for Users */}
-          {role !== 'admin' && (
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/dashboard" className="text-cloud-700 hover:text-primary-600 transition">
-                Dashboard
-              </Link>
-              <Link to="/challenges" className="text-cloud-700 hover:text-primary-600 transition">
-                Challenges
-              </Link>
-              <Link to="/progress" className="text-cloud-700 hover:text-primary-600 transition">
-                Progress
-              </Link>
+          {/* Desktop Navigation */}
+          {navLinks.length > 0 && (
+            <div className="hidden md:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="px-4 py-2 text-sm font-medium text-cloud-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200"
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
           )}
 
-          {/* Right Side Icons */}
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 hover:bg-cloud-100 rounded-lg transition">
-              <Bell className="w-5 h-5 text-cloud-700" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          {/* Right Side */}
+          <div className="flex items-center gap-3">
+            {/* Notifications */}
+            <button className="relative p-2 text-cloud-700 hover:bg-cloud-100 rounded-lg transition-colors group">
+              <Bell className="w-5 h-5 group-hover:text-primary-600 transition-colors" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full animate-pulse"></span>
             </button>
 
-            <div className="hidden sm:flex items-center gap-3">
+            {/* User Profile */}
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-cloud-50 transition-colors">
               {user && (
                 <>
                   <img
                     src={user.avatar || 'https://api.dicebear.com/7.x/avataaars/svg?seed=User'}
                     alt={user.name}
-                    className="w-8 h-8 rounded-full"
+                    className="w-8 h-8 rounded-full ring-2 ring-primary-100"
                   />
-                  <div className="text-sm">
-                    <div className="font-medium text-cloud-900">{user.name}</div>
-                    <div className="text-xs text-cloud-500">{user.email}</div>
+                  <div className="hidden lg:block text-sm">
+                    <div className="font-semibold text-cloud-900">{user.name}</div>
+                    <div className="text-xs text-cloud-500">{role === 'admin' ? 'Admin' : 'Learner'}</div>
                   </div>
                 </>
               )}
             </div>
 
+            {/* Logout Button */}
             <button
               onClick={logout}
-              className="hidden sm:flex items-center gap-2 px-3 py-2 text-cloud-700 hover:bg-cloud-100 rounded-lg transition"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 text-cloud-600 hover:text-error hover:bg-red-50 rounded-lg transition-all duration-200"
+              title="Logout"
             >
               <LogOut className="w-4 h-4" />
-            </button>
-
-            {/* Mobile Menu Button */}
-            <button onClick={toggleMenu} className="md:hidden p-2 hover:bg-cloud-100 rounded-lg transition">
-              {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu - Only for Users */}
-        {isOpen && role !== 'admin' && (
-          <div className="md:hidden pb-4 border-t border-cloud-100 pt-4">
-            <Link
-              to="/dashboard"
-              className="block px-4 py-2 text-cloud-700 hover:bg-cloud-100 rounded-lg transition"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/challenges"
-              className="block px-4 py-2 text-cloud-700 hover:bg-cloud-100 rounded-lg transition"
-            >
-              Challenges
-            </Link>
-            <Link
-              to="/progress"
-              className="block px-4 py-2 text-cloud-700 hover:bg-cloud-100 rounded-lg transition"
-            >
-              Progress
-            </Link>
+        {/* Mobile Navigation */}
+        {isOpen && (
+          <div className="md:hidden pb-4 border-t border-cloud-100 pt-4 space-y-2 animate-slide-down">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className="block px-4 py-3 text-sm font-medium text-cloud-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              >
+                {link.label}
+              </Link>
+            ))}
             <button
               onClick={logout}
-              className="w-full mt-4 px-4 py-2 text-left text-cloud-700 hover:bg-cloud-100 rounded-lg transition flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </div>
-        )}
-
-        {/* Mobile Logout for Admin */}
-        {isOpen && role === 'admin' && (
-          <div className="md:hidden pb-4 border-t border-cloud-100 pt-4">
-            <button
-              onClick={logout}
-              className="w-full px-4 py-2 text-left text-cloud-700 hover:bg-cloud-100 rounded-lg transition flex items-center gap-2"
+              className="w-full mt-4 px-4 py-3 text-left text-sm font-medium text-error hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
             >
               <LogOut className="w-4 h-4" />
               Logout

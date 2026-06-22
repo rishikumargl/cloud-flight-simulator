@@ -1,6 +1,7 @@
 import { Home, BookOpen, TrendingUp, Users, BarChart3, X, Settings, Server, Zap, AlertCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import useAuthStore from '../hooks/useAuth';
+import Logo from './ui/Logo';
 
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
@@ -40,7 +41,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-cloud-900 text-white w-64 z-40 transform transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed md:fixed top-0 left-0 h-screen bg-cloud-900 text-white w-64 z-40 transform transition-transform duration-300 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -48,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }) {
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary-400 rounded-lg flex items-center justify-center">
-                ☁️
+                <Logo size={18} className="text-white" />
               </div>
               <div>
                 <span className="font-bold text-lg block">CloudFlight</span>

@@ -33,9 +33,9 @@ function App() {
   const { isAuthenticated, role } = useAuthStore();
 
   const ProtectedLayout = ({ children }) => (
-    <div className="flex h-screen bg-cloud-50">
+    <div className="h-screen bg-cloud-50">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex flex-col overflow-hidden h-full">
         <Navbar onMenuToggle={setSidebarOpen} />
         <main className="flex-1 overflow-y-auto">
           <div className="px-4 sm:px-6 lg:px-8 py-8">

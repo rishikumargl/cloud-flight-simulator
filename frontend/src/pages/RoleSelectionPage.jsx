@@ -1,110 +1,60 @@
 import { useNavigate } from 'react-router-dom';
-import useAuthStore from '../hooks/useAuth';
+import Button from '../components/ui/Button';
+import Logo from '../components/ui/Logo';
 
 export default function RoleSelectionPage() {
   const navigate = useNavigate();
-  const { setRole } = useAuthStore();
-
-  const handleUserRole = () => {
-    setRole('user');
-    navigate('/login');
-  };
-
-  const handleAdminRole = () => {
-    setRole('admin');
-    navigate('/admin/login');
-  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-sky-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary-600 rounded-2xl mb-6">
-            <span className="text-5xl">☁️</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-cloud-900 mb-4">Cloud Flight Simulator</h1>
-          <p className="text-lg text-cloud-600">Select your role to continue</p>
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl animate-fade-in text-center">
+        {/* Logo */}
+        <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary-600 to-primary-700 rounded-3xl mb-8 shadow-lg border border-primary-200">
+          <Logo size={40} className="text-white" />
         </div>
 
-        {/* Role Selection Cards */}
-        <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* User Card */}
-          <div
-            onClick={handleUserRole}
-            className="group cursor-pointer bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-8 border-2 border-transparent hover:border-primary-600"
-          >
-            <div className="text-6xl mb-6 text-center">🎓</div>
-            <h2 className="text-2xl font-bold text-cloud-900 mb-4 text-center">Learner</h2>
-            <p className="text-center text-cloud-600 mb-6 text-base leading-relaxed">
-              Start your cloud learning journey with personalized challenges and real-time feedback.
-            </p>
-            <div className="space-y-3 mb-8">
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Access cloud challenges</span>
-              </div>
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Track your progress</span>
-              </div>
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Get AI-powered feedback</span>
-              </div>
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Earn certificates</span>
-              </div>
-            </div>
-            <button className="w-full bg-primary-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-700 transition text-base">
-              Continue as Learner
-            </button>
-          </div>
+        {/* Main Content */}
+        <h1 className="text-5xl md:text-6xl font-bold text-cloud-900 mb-4">Cloud Flight Simulator</h1>
+        <p className="text-xl text-cloud-600 mb-10 max-w-xl mx-auto leading-relaxed">
+          Master cloud computing through interactive AI-powered challenges, real-time feedback, and hands-on learning experiences.
+        </p>
 
-          {/* Admin Card */}
-          <div
-            onClick={handleAdminRole}
-            className="group cursor-pointer bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 p-8 border-2 border-transparent hover:border-primary-600"
-          >
-            <div className="text-6xl mb-6 text-center">⚙️</div>
-            <h2 className="text-2xl font-bold text-cloud-900 mb-4 text-center">Administrator</h2>
-            <p className="text-center text-cloud-600 mb-6 text-base leading-relaxed">
-              Manage the platform, monitor learners, and analyze system performance.
-            </p>
-            <div className="space-y-3 mb-8">
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Monitor learners</span>
-              </div>
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Track challenges</span>
-              </div>
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>View analytics</span>
-              </div>
-              <div className="flex items-center gap-3 text-cloud-700 text-base">
-                <span className="text-primary-600 font-bold">✓</span>
-                <span>Audit logs</span>
-              </div>
-            </div>
-            <button className="w-full bg-primary-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-primary-700 transition text-base">
-              Continue as Admin
-            </button>
+        {/* CTA Button */}
+        <Button
+          onClick={() => navigate('/login')}
+          variant="primary"
+          size="lg"
+          className="gap-2 mb-12"
+        >
+          Get Started →
+        </Button>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div className="bg-gradient-to-br from-primary-50 to-sky-50 rounded-2xl p-6 border border-primary-200 hover:shadow-lg transition">
+            <span className="text-4xl mb-3 block">🎓</span>
+            <h3 className="text-cloud-900 font-bold mb-2">Learn</h3>
+            <p className="text-cloud-600 text-sm">Access 6+ cloud learning tracks</p>
+          </div>
+          <div className="bg-gradient-to-br from-primary-50 to-sky-50 rounded-2xl p-6 border border-primary-200 hover:shadow-lg transition">
+            <span className="text-4xl mb-3 block">⚡</span>
+            <h3 className="text-cloud-900 font-bold mb-2">Practice</h3>
+            <p className="text-cloud-600 text-sm">Real-world cloud scenarios</p>
+          </div>
+          <div className="bg-gradient-to-br from-primary-50 to-sky-50 rounded-2xl p-6 border border-primary-200 hover:shadow-lg transition">
+            <span className="text-4xl mb-3 block">🎯</span>
+            <h3 className="text-cloud-900 font-bold mb-2">Grow</h3>
+            <p className="text-cloud-600 text-sm">AI-powered feedback instantly</p>
           </div>
         </div>
 
-        {/* Footer Info */}
-        <div className="text-center">
-          <p className="text-cloud-600 text-base">
-            Need help? Contact support at{' '}
-            <a href="mailto:support@cloudflight.dev" className="text-primary-600 hover:text-primary-700 font-semibold">
-              support@cloudflight.dev
-            </a>
-          </p>
-        </div>
+        {/* Footer */}
+        <p className="text-cloud-600 text-sm">
+          Need help?{' '}
+          <a href="mailto:support@cloudflight.dev" className="text-primary-600 font-bold hover:text-primary-700 transition underline">
+            contact support
+          </a>
+        </p>
       </div>
     </div>
   );
