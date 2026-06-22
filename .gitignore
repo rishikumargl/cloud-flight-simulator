@@ -9,6 +9,8 @@ dist/
 .vscode/
 .idea/
 
+.claude/
+
 P1_*.md
 P2_*.md
 P3_*.md
