@@ -1,1 +1,0 @@
-# Keycloak OIDC integration module

@@ -13,8 +13,11 @@ def _get_required_env(key: str) -> str:
 
 DATABASE_URL = _get_required_env("DATABASE_URL")
 
-# Keycloak OIDC configuration
-KEYCLOAK_URL = os.getenv("KEYCLOAK_URL", "http://localhost:8081")
-KEYCLOAK_REALM = os.getenv("KEYCLOAK_REALM", "cloud-flight-simulator")
-KEYCLOAK_CLIENT_ID = os.getenv("KEYCLOAK_CLIENT_ID", "cloud-flight-simulator-backend")
-KEYCLOAK_CLIENT_SECRET = os.getenv("KEYCLOAK_CLIENT_SECRET", "")
+# Clerk authentication configuration
+CLERK_SECRET_KEY = _get_required_env("CLERK_SECRET_KEY")
+CLERK_PUBLISHABLE_KEY = _get_required_env("CLERK_PUBLISHABLE_KEY")
+CLERK_PEM_PUBLIC_KEY = os.getenv("CLERK_PEM_PUBLIC_KEY", "")
+
+# Clerk issuer - matches the JWT 'iss' claim
+# For environment dynamic-raptor-82.clerk.accounts.dev
+CLERK_ISSUER = os.getenv("CLERK_ISSUER", "https://dynamic-raptor-82.clerk.accounts.dev")
