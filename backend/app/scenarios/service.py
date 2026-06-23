@@ -33,6 +33,11 @@ class ScenarioService:
         track: str,
         difficulty: str,
     ) -> MissionSchema:
+        import random
+
+        # Randomly select one of the 3 free tier zones
+        FREE_TIER_ZONES = ["us-west1-a", "us-central1-a", "us-east1-a"]
+        selected_zone = random.choice(FREE_TIER_ZONES)
         """
         Generate a mission using the scenario-generation-v1 LangChain chain.
 
@@ -57,6 +62,7 @@ class ScenarioService:
         mission_data = self._invoke_generation_chain(
             track=track,
             difficulty=difficulty,
+            zone=selected_zone,
             previous_missions=previous_missions,
             previous_performance=previous_performance,
         )
@@ -211,6 +217,7 @@ class ScenarioService:
         self,
         track: str,
         difficulty: str,
+        zone: str,
         previous_missions: List[MissionSchema],
         previous_performance: dict,
     ) -> dict:
@@ -219,11 +226,12 @@ class ScenarioService:
 
         Uses OpenAI-compatible LLM via P2's factory.
         Returns structured JSON that maps directly to MissionSchema.
-        Generates COMPUTE TRACK (Compute Engine) missions using GCP Free Tier.
+        Generates COMPUTE TRACK (Compute Engine) missions using e2-micro and free tier zones.
 
         Args:
             track: Track for mission (COMPUTE only)
             difficulty: Difficulty level (BEGINNER, INTERMEDIATE, ADVANCED)
+            zone: GCP zone (randomly selected from free tier zones)
             previous_missions: Up to 5 prior missions for context
             previous_performance: Aggregated performance metrics
 
@@ -244,20 +252,22 @@ class ScenarioService:
         avg_score = previous_performance.get("avg_score", 0)
         total_attempts = previous_performance.get("total_attempts", 0)
 
-        # Define the prompt template for COMPUTE ENGINE ONLY (e2-micro free tier)
+        # Define the prompt template for COMPUTE ENGINE ONLY (e2-micro, free tier zones)
         prompt_template = PromptTemplate(
-            input_variables=["difficulty", "prior_missions", "success_rate", "avg_score", "total_attempts"],
-            template="""You are an expert Google Cloud instructor specializing in Compute Engine. Generate a realistic, educational GCP Compute Engine mission using FREE TIER resources only.
+            input_variables=["difficulty", "zone", "prior_missions", "success_rate", "avg_score", "total_attempts"],
+            template="""You are an expert Google Cloud instructor specializing in Compute Engine. Generate a realistic, educational GCP Compute Engine mission using free tier resources only.
 
 IMPORTANT:
 - All missions MUST use ONLY Compute Engine (no other GCP services)
-- Machine type is ALWAYS e2-micro (1 vCPU, 1GB RAM) - FREE TIER
+- Machine type is ALWAYS e2-micro (1 vCPU, 1GB RAM)
+- Zone is ALWAYS {zone} (free tier zone)
 - Only resource type allowed: compute_instance
 - No networking, firewall, or other services
 
 Learner Profile:
 - Track: Compute Engine
 - Difficulty Level: {difficulty}
+- Zone: {zone}
 - Prior Attempts: {total_attempts}
 - Success Rate: {success_rate:.1f}%
 - Average Score: {avg_score:.1f}%
@@ -323,6 +333,7 @@ CRITICAL RULES:
 - Weights MUST sum to exactly 100 (always 34, 33, 33)
 - Use ONLY "name_suffix" in expected_state (never full resource names)
 - Machine type MUST ALWAYS be "e2-micro"
+- Zone MUST ALWAYS be {zone} (randomly selected from: us-west1-a, us-central1-a, us-east1-a)
 - resource_type MUST be ONLY "compute_instance"
 - Include EXACTLY 3 success criteria that test DIFFERENT aspects of THIS specific mission
 - Each criterion description MUST be specific to the mission (not generic)
@@ -332,6 +343,8 @@ CRITICAL RULES:
 - title MUST be unique and avoid: {prior_missions}
 - Return ONLY JSON, no extra text
 - ABSOLUTELY NO other GCP services (Compute Engine only)
+- ABSOLUTELY NO other machine types (only e2-micro)
+- ABSOLUTELY NO other zones (only us-west1-a, us-central1-a, or us-east1-a as provided)
 - EVERY mission MUST be different - generate creative Compute Engine tasks
 """,
         )
@@ -350,8 +363,8 @@ CRITICAL RULES:
         try:
             mission_data = chain.invoke(
                 {
-                    "track": track,
                     "difficulty": difficulty,
+                    "zone": zone,
                     "prior_missions": json.dumps(prior_titles),
                     "success_rate": success_rate,
                     "avg_score": avg_score,
