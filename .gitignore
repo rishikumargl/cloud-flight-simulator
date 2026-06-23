@@ -25,3 +25,6 @@ P*_*.md
 docs/CLAUDE.md
 docs/P2_PLATFORM.md
 docs/Team-Titans.md
+
+.tanstack/
+backfill_emails.py

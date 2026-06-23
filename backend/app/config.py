@@ -12,8 +12,12 @@ def _get_required_env(key: str) -> str:
 
 
 DATABASE_URL = _get_required_env("DATABASE_URL")
-SECRET_KEY = _get_required_env("SECRET_KEY")
 
-ALGORITHM = os.getenv("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "60"))
-REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+# Clerk authentication configuration
+CLERK_SECRET_KEY = _get_required_env("CLERK_SECRET_KEY")
+CLERK_PUBLISHABLE_KEY = _get_required_env("CLERK_PUBLISHABLE_KEY")
+CLERK_PEM_PUBLIC_KEY = os.getenv("CLERK_PEM_PUBLIC_KEY", "")
+
+# Clerk issuer - matches the JWT 'iss' claim
+# For environment dynamic-raptor-82.clerk.accounts.dev
+CLERK_ISSUER = os.getenv("CLERK_ISSUER", "https://dynamic-raptor-82.clerk.accounts.dev")

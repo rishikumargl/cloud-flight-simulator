@@ -9,10 +9,22 @@ app = FastAPI(
     version="3.0"
 )
 
+# CORS — list every origin your frontend runs on.
+# withCredentials is NOT used (we use JWT Bearer tokens),
+# so allow_credentials=False and allow_origins can stay specific.
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://localhost:8081",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:8081",
+    "http://127.0.0.1:5173",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,   # False because we use Authorization header, not cookies
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -27,6 +39,7 @@ def startup_validation():
     try:
         db.execute(text("SELECT 1"))
         db.commit()
+        print("[STARTUP] Database connection OK")
     except Exception as e:
         raise RuntimeError(f"Database connectivity check failed: {e}") from e
     finally:
