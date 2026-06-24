@@ -1,9 +1,8 @@
 """FastAPI routes for scenarios domain — P3 owned."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from app.dependencies.auth import get_current_user
 from app.dependencies import get_db
@@ -17,7 +16,6 @@ router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
 def get_scenario_service() -> ScenarioService:
     """Dependency to provide ScenarioService."""
-    # LLM is injected via P2's factory inside ScenarioService.generate()
     return ScenarioService()
 
 
@@ -40,13 +38,6 @@ async def generate_scenario(
     }
 
     Response: {"success": true, "data": MissionSchema}
-
-    Process:
-    1. Validate input
-    2. Call scenario_service.generate() to get MissionSchema
-    3. Persist mission to database
-    4. Write audit event
-    5. Return mission
     """
     track = request.get("track")
     difficulty = request.get("difficulty")
@@ -57,9 +48,13 @@ async def generate_scenario(
             content=error_response("MISSING_FIELDS", "Missing track or difficulty"),
         )
 
+    # Frontend track/difficulty ids are lowercase; normalize at the API boundary
+    # so the generation service receives the uppercase contract values it expects.
+    track = str(track).strip().upper()
+    difficulty = str(difficulty).strip().upper()
+
     try:
         # Generate mission via scenario-generation-v1 LangChain chain
-        # P3 returns validated MissionSchema, does NOT persist
         mission = scenario_service.generate(
             db=db,
             user_id=current_user.user_id,
@@ -67,7 +62,7 @@ async def generate_scenario(
             difficulty=difficulty,
         )
 
-        # Persist mission to database (API layer responsibility per P2 guidance)
+        # Persist mission to database
         mission_obj = Mission(
             mission_id=mission.mission_id,
             track=mission.track,
@@ -84,26 +79,20 @@ async def generate_scenario(
         db.commit()
         db.refresh(mission_obj)
 
-        # Write audit event after successful generation
-        audit_service.write_event(
-            db=db,
-            event_type="MISSION_GENERATED",
-            source="SCENARIO_SERVICE",
-            user_id=current_user.user_id,
-            payload={"mission_id": str(mission.mission_id)},
-        )
-
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=success_response(mission.model_dump(mode="json")),
         )
 
     except ValueError as e:
+        db.rollback()
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=error_response("VALIDATION_ERROR", str(e)),
         )
     except Exception as e:
+        db.rollback()
+        print(f"[ERROR] generate_scenario failed: {e}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=error_response("INTERNAL_ERROR", "Failed to generate scenario"),
@@ -121,12 +110,6 @@ async def get_scenario(
     GET /scenarios/{mission_id}
 
     Retrieve a mission by mission_id.
-
-    Path parameters:
-    - mission_id: UUID of the mission
-
-    Response: {"success": true, "data": MissionSchema}
-    Authorization: User must have access to this mission
     """
     mission = scenario_service.get_mission(db, mission_id)
 
@@ -136,10 +119,6 @@ async def get_scenario(
             content=error_response("NOT_FOUND", "Mission not found"),
         )
 
-    # TODO: Implement authorization check
-    # For now, assume all authenticated users can access all missions
-    # In production, verify user has completed or is assigned this mission
-
     return JSONResponse(
         status_code=status.HTTP_200_OK,
         content=success_response(mission.model_dump(mode="json")),
@@ -147,10 +126,10 @@ async def get_scenario(
 
 
 def success_response(data):
-    """Format successful response per CLAUDE.md contract."""
+    """Format successful response per contract."""
     return {"success": True, "data": data}
 
 
 def error_response(code: str, message: str):
-    """Format error response per CLAUDE.md contract."""
+    """Format error response per contract."""
     return {"success": False, "error": {"code": code, "message": message}}

@@ -24,7 +24,4 @@ CLERK_ISSUER = os.getenv("CLERK_ISSUER", "https://dynamic-raptor-82.clerk.accoun
 
 # GCP configuration
 GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "cloud-flight-sim")
-GCP_KEY_PATH = os.getenv(
-    "GCP_KEY_PATH",
-    os.path.join(os.path.dirname(__file__), "..", "..", "secrets", "service-account-key.json"),
-)
+GCP_KEY_PATH = os.getenv("GCP_KEY_PATH", None)

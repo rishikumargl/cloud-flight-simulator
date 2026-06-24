@@ -387,3 +387,119 @@ async def stop_challenge(
                 "error": {"code": "INTERNAL_ERROR", "message": str(e)}
             }
         )
+
+
+# ── Admin routes ────────────────────────────────────────────────────────────
+
+@router.get("/admin/sessions")
+async def admin_list_sessions(
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    GET /challenges/admin/sessions
+
+    Admin only: list all active challenge sessions and their environments.
+    """
+    if current_user.role not in ("ADMIN", "admin"):
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"success": False, "error": {"code": "FORBIDDEN", "message": "Admin only"}}
+        )
+
+    sessions = db.query(ChallengeSession).filter(
+        ChallengeSession.status == "ACTIVE"
+    ).order_by(ChallengeSession.started_at.desc()).all()
+
+    result = []
+    for s in sessions:
+        env = db.query(Environment).filter(Environment.session_id == s.session_id).first()
+        result.append({
+            "session_id": str(s.session_id),
+            "user_id": str(s.user_id),
+            "mission_id": str(s.mission_id),
+            "status": s.status,
+            "started_at": s.started_at.isoformat() if s.started_at else None,
+            "expires_at": s.expires_at.isoformat() if s.expires_at else None,
+            "environment": {
+                "env_id": str(env.env_id),
+                "vm_name": env.vm_name,
+                "zone": env.zone,
+                "status": env.status,
+                "gcp_project_id": env.gcp_project_id,
+            } if env else None,
+        })
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"success": True, "data": result}
+    )
+
+
+@router.post("/admin/sessions/{session_id}/clear")
+async def admin_clear_session(
+    session_id: str,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    POST /challenges/admin/sessions/{session_id}/clear
+
+    Admin only: force-terminate a session and clean up GCP resources.
+    """
+    if current_user.role not in ("ADMIN", "admin"):
+        return JSONResponse(
+            status_code=status.HTTP_403_FORBIDDEN,
+            content={"success": False, "error": {"code": "FORBIDDEN", "message": "Admin only"}}
+        )
+
+    session = db.query(ChallengeSession).filter(
+        ChallengeSession.session_id == session_id
+    ).first()
+
+    if not session:
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"success": False, "error": {"code": "SESSION_NOT_FOUND", "message": "Session not found"}}
+        )
+
+    environment = db.query(Environment).filter(
+        Environment.session_id == session.session_id
+    ).first()
+
+    # Look up user email for IAM cleanup
+    from app.models.users import User
+    user = db.query(User).filter(User.user_id == session.user_id).first()
+    user_email = user.email if user else None
+
+    cleanup_errors = []
+    if environment and environment.vm_name and environment.zone and user_email:
+        try:
+            ChallengeService.cleanup_environment(
+                user_email=user_email,
+                vm_name=environment.vm_name,
+                zone=environment.zone,
+            )
+        except Exception as e:
+            cleanup_errors.append(str(e))
+            print(f"[ADMIN-CLEAR] Cleanup error: {e}")
+
+    if environment:
+        environment.status = "DESTROYED"
+        environment.destroyed_at = datetime.now(timezone.utc)
+
+    session.status = "EXPIRED"
+    session.completed_at = datetime.now(timezone.utc)
+    db.commit()
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "success": True,
+            "data": {
+                "session_id": session_id,
+                "status": "EXPIRED",
+                "cleanup_errors": cleanup_errors,
+            }
+        }
+    )

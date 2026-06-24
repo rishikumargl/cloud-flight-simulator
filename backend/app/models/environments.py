@@ -36,7 +36,7 @@ class Environment(Base):
         nullable=False,
     )
     resource_prefix: Mapped[str] = mapped_column(
-        String(20),
+        String(64),
         nullable=False,
         unique=True,
     )

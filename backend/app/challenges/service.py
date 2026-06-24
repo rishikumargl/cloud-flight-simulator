@@ -60,8 +60,11 @@ class ChallengeService:
     @staticmethod
     def provision_gcp_environment(user_email: str, provisioning_params: dict):
         """Provision GCP Compute Instance and return VM name and console URL."""
-        if not os.path.exists(GCP_KEY_PATH):
-            raise FileNotFoundError(f"Service account key missing: {GCP_KEY_PATH}")
+        if not GCP_KEY_PATH or not os.path.exists(GCP_KEY_PATH):
+            raise FileNotFoundError(
+                f"GCP_KEY_PATH environment variable must be set to a valid service account key file. "
+                f"Current value: {GCP_KEY_PATH}"
+            )
 
         credentials = service_account.Credentials.from_service_account_file(GCP_KEY_PATH)
         project_name = f"projects/{GCP_PROJECT_ID}"
@@ -186,8 +189,11 @@ class ChallengeService:
     @staticmethod
     def cleanup_environment(user_email: str, vm_name: str, zone: str):
         """Delete VM and remove IAM permissions."""
-        if not os.path.exists(GCP_KEY_PATH):
-            raise FileNotFoundError(f"Service account key missing: {GCP_KEY_PATH}")
+        if not GCP_KEY_PATH or not os.path.exists(GCP_KEY_PATH):
+            raise FileNotFoundError(
+                f"GCP_KEY_PATH environment variable must be set to a valid service account key file. "
+                f"Current value: {GCP_KEY_PATH}"
+            )
 
         credentials = service_account.Credentials.from_service_account_file(GCP_KEY_PATH)
         project_name = f"projects/{GCP_PROJECT_ID}"

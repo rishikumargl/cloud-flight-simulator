@@ -19,8 +19,8 @@ const apiService = {
   generateScenario: async (track: string, difficulty: string) => {
     try {
       const response = await axiosClient.post("/scenarios/generate", {
-        track,
-        difficulty,
+        track: track.toUpperCase(),
+        difficulty: difficulty.toUpperCase(),
       });
       return response.data.data;
     } catch (error) {
@@ -113,6 +113,28 @@ const apiService = {
       avgCompletionTime: "0h",
       systemHealth: "OK",
     };
+  },
+
+  // Admin: list active GCP sessions
+  adminListSessions: async () => {
+    try {
+      const response = await axiosClient.get("/challenges/admin/sessions");
+      return response.data.data;
+    } catch (error) {
+      console.error("Failed to list admin sessions:", error);
+      throw error;
+    }
+  },
+
+  // Admin: force-clear a session and its GCP resources
+  adminClearSession: async (session_id: string) => {
+    try {
+      const response = await axiosClient.post(`/challenges/admin/sessions/${session_id}/clear`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Failed to clear session:", error);
+      throw error;
+    }
   },
 
   // Legacy/Deprecated (use specific methods above instead)

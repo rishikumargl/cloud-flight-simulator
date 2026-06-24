@@ -161,7 +161,11 @@ class ScenarioService:
                     prior_missions.append(mission)
 
             return prior_missions
-        except Exception:
+        except Exception as e:
+            # A failed read leaves the SQLAlchemy session in an aborted transaction
+            # state on Postgres. Roll it back so mission generation can continue.
+            db.rollback()
+            print(f"[WARN] Failed to load learner mission history: {e}")
             return []
 
     def _get_learner_performance(self, db: Session, user_id: str) -> dict:
@@ -205,7 +209,11 @@ class ScenarioService:
                 "success_rate": 0,
                 "avg_score": 0.0,
             }
-        except Exception:
+        except Exception as e:
+            # Keep personalization failures from poisoning the session used for
+            # the later mission insert.
+            db.rollback()
+            print(f"[WARN] Failed to load learner performance: {e}")
             return {
                 "total_attempts": 0,
                 "successful_attempts": 0,

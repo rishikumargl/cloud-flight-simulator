@@ -8,26 +8,47 @@ export const Route = createFileRoute("/_protected/admin/dashboard")({
 });
 
 function AdminDashboard() {
-  const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+  const [clearing, setClearing] = useState<Record<string, boolean>>({});
+  const [clearErrors, setClearErrors] = useState<Record<string, string>>({});
+
+  const loadSessions = async () => {
+    try {
+      const data = await (api as any).adminListSessions();
+      setSessions(data ?? []);
+    } catch (err: any) {
+      console.error("Failed to load admin sessions:", err);
+    } finally {
+      setLoadingSessions(false);
+    }
+  };
 
   useEffect(() => {
-    api.getAdminData().then((d) => { setData(d); setLoading(false); });
+    loadSessions();
+    const interval = setInterval(loadSessions, 30_000);
+    return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        {[...Array(3)].map((_, i) => <div key={i} className="h-40 animate-pulse rounded-3xl bg-muted" />)}
-      </div>
-    );
-  }
+  const handleClear = async (session_id: string) => {
+    setClearing((prev) => ({ ...prev, [session_id]: true }));
+    setClearErrors((prev) => { const n = { ...prev }; delete n[session_id]; return n; });
+    try {
+      await (api as any).adminClearSession(session_id);
+      setSessions((prev) => prev.filter((s) => s.session_id !== session_id));
+    } catch (err: any) {
+      const msg = err?.response?.data?.error?.message ?? err.message ?? "Clear failed";
+      setClearErrors((prev) => ({ ...prev, [session_id]: msg }));
+    } finally {
+      setClearing((prev) => ({ ...prev, [session_id]: false }));
+    }
+  };
 
   const stats = [
-    { label: "ACTIVE LEARNERS", value: String(data?.activeLearners), icon: "👥" },
-    { label: "ACTIVE CHALLENGES", value: String(data?.activeChallenges), icon: "🎯" },
-    { label: "AVG COMPLETION", value: data?.avgCompletionTime, icon: "⏱️" },
-    { label: "SYSTEM STATUS", value: data?.systemHealth, icon: "✅" },
+    { label: "ACTIVE SESSIONS", value: String(sessions.length), icon: "🎯" },
+    { label: "PROVISIONED VMs", value: String(sessions.filter((s) => s.environment?.status === "READY").length), icon: "🖥️" },
+    { label: "PROVISIONING", value: String(sessions.filter((s) => s.environment?.status === "PROVISIONING").length), icon: "⚙️" },
+    { label: "SYSTEM", value: "OK", icon: "✅" },
   ];
 
   return (
@@ -39,7 +60,7 @@ function AdminDashboard() {
           Platform overview.
         </h1>
         <p className="mt-3 text-[15px] text-white/70">
-          Monitor learners, AI pipelines, and GCP environments in real time.
+          Monitor learners, active GCP environments, and clear resources.
         </p>
       </div>
 
@@ -56,72 +77,79 @@ function AdminDashboard() {
         ))}
       </div>
 
-      {/* Logs section */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* Scenario generation logs */}
-        <div className="rounded-3xl border border-border bg-surface p-8">
-          <div className="mono-label mb-5">SCENARIO GENERATION LOG</div>
-          <div className="space-y-1">
-            {data?.scenarioGenerationLogs?.map((log: any) => (
-              <div key={log.id} className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-[13px]">
-                <div className="flex items-center gap-3">
-                  <span className="mono-label !text-foreground/50">{log.timestamp}</span>
-                  <span className="text-foreground">{log.scenario}</span>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  log.status === "success" ? "bg-[#e8f5ee] text-[#1a7f3c]" : "bg-[#fde8e8] text-[#b42318]"
-                }`}>
-                  {log.status.toUpperCase()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Evaluation logs */}
-        <div className="rounded-3xl border border-border bg-surface p-8">
-          <div className="mono-label mb-5">EVALUATION LOG</div>
-          <div className="space-y-1">
-            {data?.evaluationLogs?.map((log: any) => (
-              <div key={log.id} className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-3 text-[13px]">
-                <div className="flex items-center gap-3">
-                  <span className="mono-label !text-foreground/50">{log.timestamp}</span>
-                  <span className="text-foreground">{log.challenge}</span>
-                </div>
-                <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                  log.result === "Pass" ? "bg-[#e8f5ee] text-[#1a7f3c]" : "bg-[#fde8e8] text-[#b42318]"
-                }`}>
-                  {log.result.toUpperCase()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Audit log */}
+      {/* Active Sessions / Resource Management */}
       <div className="rounded-3xl border border-border bg-surface p-8">
-        <div className="mono-label mb-5">AUDIT EVENTS</div>
-        <div className="overflow-hidden rounded-2xl border border-border">
-          <div className="grid grid-cols-[100px_1fr_1fr_1fr] gap-4 border-b border-border bg-muted/50 px-5 py-3">
-            {["TIME", "USER", "ACTION", "RESOURCE"].map((h) => (
-              <div key={h} className="mono-label text-[10px]">{h}</div>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="mono-label">ACTIVE GCP SESSIONS</div>
+          <button
+            onClick={loadSessions}
+            className="mono-label rounded-full border border-border px-4 py-2 text-[11px] hover:border-primary/40 transition"
+          >
+            ↻ Refresh
+          </button>
+        </div>
+
+        {loadingSessions ? (
+          <div className="space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="h-16 animate-pulse rounded-2xl bg-muted" />
             ))}
           </div>
-          {data?.auditEvents?.map((e: any, i: number) => (
-            <div
-              key={e.id}
-              className={`grid grid-cols-[100px_1fr_1fr_1fr] gap-4 px-5 py-3.5 text-[13px] ${
-                i < data.auditEvents.length - 1 ? "border-b border-border" : ""
-              }`}
-            >
-              <span className="mono-label !text-foreground/50">{e.timestamp}</span>
-              <span className="text-foreground">{e.user}</span>
-              <span className="text-ink">{e.action}</span>
-              <span className="text-foreground">{e.resource}</span>
+        ) : sessions.length === 0 ? (
+          <div className="flex h-32 items-center justify-center rounded-2xl border border-dashed border-border">
+            <p className="text-[14px] text-foreground/60">No active sessions.</p>
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-border">
+            <div className="grid grid-cols-[1fr_1fr_1fr_100px_120px] gap-4 border-b border-border bg-muted/50 px-5 py-3">
+              {["SESSION", "USER", "ENVIRONMENT", "STATUS", "ACTION"].map((h) => (
+                <div key={h} className="mono-label text-[10px]">{h}</div>
+              ))}
             </div>
-          ))}
-        </div>
+            {sessions.map((s, i) => (
+              <div
+                key={s.session_id}
+                className={`grid grid-cols-[1fr_1fr_1fr_100px_120px] gap-4 items-center px-5 py-4 text-[13px] ${
+                  i < sessions.length - 1 ? "border-b border-border" : ""
+                }`}
+              >
+                <span className="font-mono text-[11px] text-foreground">{s.session_id.slice(0, 8)}…</span>
+                <span className="text-foreground truncate">{s.user_id.slice(0, 8)}…</span>
+                <div>
+                  {s.environment?.vm_name ? (
+                    <span className="font-mono text-[11px] text-ink">{s.environment.vm_name}</span>
+                  ) : (
+                    <span className="text-foreground/40">—</span>
+                  )}
+                  {s.environment?.zone && (
+                    <div className="mono-label text-[10px] !text-foreground/50">{s.environment.zone}</div>
+                  )}
+                </div>
+                <span className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold ${
+                  s.environment?.status === "READY"
+                    ? "bg-[#e8f5ee] text-[#1a7f3c]"
+                    : s.environment?.status === "PROVISIONING"
+                    ? "bg-yellow-50 text-yellow-700"
+                    : "bg-muted text-foreground"
+                }`}>
+                  {s.environment?.status ?? s.status}
+                </span>
+                <div>
+                  <button
+                    onClick={() => handleClear(s.session_id)}
+                    disabled={clearing[s.session_id]}
+                    className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[12px] font-medium text-red-600 hover:bg-red-100 transition disabled:opacity-50"
+                  >
+                    {clearing[s.session_id] ? "Clearing…" : "Clear"}
+                  </button>
+                  {clearErrors[s.session_id] && (
+                    <div className="mt-1 text-[10px] text-red-500">{clearErrors[s.session_id]}</div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

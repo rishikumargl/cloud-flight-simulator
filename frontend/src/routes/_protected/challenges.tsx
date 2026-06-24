@@ -59,7 +59,7 @@ function ChallengesPage() {
   };
 
   useEffect(() => {
-    if (showModal && !isGenerating) handleLaunch();
+    if (showModal) handleLaunch();
   }, [showModal]);
 
   const diffIcons = ["🌱", "📚", "🚀"];
