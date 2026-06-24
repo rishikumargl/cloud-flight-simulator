@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Zap } from "lucide-react";
-import api from "../../api/mockApi";
+import api from "../../api/apiService";
 
 export const Route = createFileRoute("/_protected/recommendations")({
   head: () => ({ meta: [{ title: "Recommendations — CloudFlight" }] }),

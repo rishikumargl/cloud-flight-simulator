@@ -4,6 +4,8 @@ sqlalchemy==2.0.23
 alembic==1.12.1
 python-dotenv==1.0.0
 psycopg2-binary==2.9.9
+google-cloud-compute==1.14.1
+google-cloud-resource-manager==1.10.4
 langchain-openai==1.1.12
 pydantic==2.7.4
 python-jose[cryptography]>=3.3.3,<4.0.0

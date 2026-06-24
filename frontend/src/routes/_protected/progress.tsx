@@ -4,7 +4,7 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import api from "../../api/mockApi";
+import api from "../../api/apiService";
 
 export const Route = createFileRoute("/_protected/progress")({
   head: () => ({ meta: [{ title: "Progress — CloudFlight" }] }),

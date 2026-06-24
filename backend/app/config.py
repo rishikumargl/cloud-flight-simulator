@@ -21,3 +21,10 @@ CLERK_PEM_PUBLIC_KEY = os.getenv("CLERK_PEM_PUBLIC_KEY", "")
 # Clerk issuer - matches the JWT 'iss' claim
 # For environment dynamic-raptor-82.clerk.accounts.dev
 CLERK_ISSUER = os.getenv("CLERK_ISSUER", "https://dynamic-raptor-82.clerk.accounts.dev")
+
+# GCP configuration
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "cloud-flight-sim")
+GCP_KEY_PATH = os.getenv(
+    "GCP_KEY_PATH",
+    os.path.join(os.path.dirname(__file__), "..", "..", "secrets", "service-account-key.json"),
+)

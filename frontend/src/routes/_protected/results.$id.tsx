@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
-import api from "../../api/mockApi";
+import api from "../../api/apiService";
 
 export const Route = createFileRoute("/_protected/results/$id")({
   head: () => ({ meta: [{ title: "Mission Results — CloudFlight" }] }),

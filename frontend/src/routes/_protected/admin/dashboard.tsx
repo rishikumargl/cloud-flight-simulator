@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import api from "../../../api/mockApi";
+import api from "../../../api/apiService";
 
 export const Route = createFileRoute("/_protected/admin/dashboard")({
   head: () => ({ meta: [{ title: "Admin Dashboard — CloudFlight" }] }),

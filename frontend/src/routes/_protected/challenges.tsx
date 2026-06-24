@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Zap } from "lucide-react";
 import { learningTracks, difficulties } from "../../data/mockData";
-import api from "../../api/mockApi";
+import api from "../../api/apiService";
 
 export const Route = createFileRoute("/_protected/challenges")({
   head: () => ({ meta: [{ title: "Challenges — CloudFlight" }] }),
@@ -23,11 +23,35 @@ function ChallengesPage() {
   const isFormValid = selectedTrack && selectedDifficulty;
 
   const handleLaunch = async () => {
+    if (!selectedTrack || !selectedDifficulty) {
+      console.error("Track and difficulty are required");
+      return;
+    }
+
     setIsGenerating(true);
     try {
-      await api.startChallenge("1");
-      await new Promise((r) => setTimeout(r, 2000));
-      navigate({ to: "/mission/$id", params: { id: "new" } });
+      // Step 1: Generate scenario to get mission_id
+      const scenario = await api.generateScenario(selectedTrack, selectedDifficulty);
+      const mission_id = scenario.mission_id;
+
+      if (!mission_id) {
+        throw new Error("No mission_id returned from scenario generation");
+      }
+
+      // Step 2: Start challenge with mission_id
+      const challenge = await api.startChallenge(mission_id);
+      const session_id = challenge.session_id;
+
+      if (!session_id) {
+        throw new Error("No session_id returned from challenge start");
+      }
+
+      // Step 3: Navigate to mission page with session_id
+      await new Promise((r) => setTimeout(r, 1000));
+      navigate({ to: "/mission/$id", params: { id: session_id } });
+    } catch (error) {
+      console.error("Failed to launch challenge:", error);
+      alert("Failed to launch challenge. Please try again.");
     } finally {
       setIsGenerating(false);
       setShowModal(false);

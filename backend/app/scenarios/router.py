@@ -5,8 +5,8 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from backend.app.dependencies import get_current_user, get_db
-from backend.app.audit_dependency import audit_service
+from app.dependencies.auth import get_current_user
+from app.dependencies import get_db
 
 from .service import ScenarioService
 from .models import Mission

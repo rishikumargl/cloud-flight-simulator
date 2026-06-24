@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.auth.router import router as auth_router
+from app.challenges.router import router as challenges_router
+from app.scenarios.router import router as scenarios_router
 from app.database import SessionLocal
 
 app = FastAPI(
@@ -31,6 +33,8 @@ app.add_middleware(
 
 # Register routers
 app.include_router(auth_router)
+app.include_router(challenges_router)
+app.include_router(scenarios_router)
 
 
 @app.on_event("startup")
