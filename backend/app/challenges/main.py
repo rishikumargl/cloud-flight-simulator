@@ -2,16 +2,22 @@ import uuid
 import time
 import os
 import threading
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from google.cloud import compute_v1, resourcemanager_v3
 from google.oauth2 import service_account
 
-app = FastAPI(title="Cloud Flight Simulator - Adaptive Core Backend Engine")
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
-# Enable CORS to allow external APIs or eventual frontend connections to interact safely
+app = FastAPI(title="Cloud Flight Simulator - Production Incident Engine")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -20,356 +26,302 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Target Google Cloud Project ID
-GCP_PROJECT_ID = "cloud-simulator"
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "cloud-simulator")
+_key_path = os.getenv("GCP_KEY_PATH", "../secrets/service-account-key.json")
+if not os.path.isabs(_key_path):
+    _app_root = Path(__file__).parent.parent.parent.parent
+    _key_path = _app_root / _key_path
+SERVICE_ACCOUNT_KEY_PATH = str(_key_path)
 
-# Path to your Google Cloud Service Account JSON key
-SERVICE_ACCOUNT_KEY_PATH = os.getenv("GCP_KEY_PATH", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))), "secrets", "service-account-key.json"))
+# =========================================================================
+# CENTRAL MULTI-USER MULTI-LAB LEDGER TRACKER
+# Structure: 
+# active_labs = {
+#    "user1@company.com": {
+#         "mission-uuid-1111": { ...lab_manifest... },
+#         "mission-uuid-2222": { ...lab_manifest... }
+#    }
+# }
+# =========================================================================
+active_labs: Dict[str, Dict[str, Dict[str, Any]]] = {}
 
-# HARDCODED SCENARIO MAPPER: Pure representation of your documentation JSON layout
-HARDCODED_MISSION = {
-    "mission_id": "mission-9cf2-4b2a",
-    "track": "COMPUTE",
-    "difficulty": "BEGINNER",
-    "title": "Deploy a Public Web Server",
-    "business_context": "A startup needs a public-facing web server.",
-    "objectives": ["Create a VM", "Expose HTTP access"],
-    "success_criteria": [
-        {
-            "criterion_id": "crit-890a-11bc",
-            "description": "VM exists",
-            "resource_type": "compute_instance",
-            "expected_state": {
-                "name_suffix": "web-01",
-                "machine_type": "e2-micro",
-                "zone": "us-central1-a",
-                "network": "default",
-                "startup_script": "#!/bin/bash\napt-get update && apt-get install -y apache2" 
-            },
-            "weight": 50
-        }
-    ],
-    "time_limit_minutes": 45,
-    "generated_by": "scenario-generator",
-    "created_at": "2026-06-22T14:15:00Z"
-}
 
-# Track active user instances for cleanup
-active_instances: Dict[str, Dict[str, Any]] = {}
+# --- TYPE-SAFE SCHEMAS FOR SCENARIO ARCHITECTURES ---
+
+class FaultConfiguration(BaseModel):
+    type: str  # "STARTUP_SCRIPT_CRASH", "CORRUPT_METADATA", "MISCONFIGURED_TAGS"
+    payload: Optional[Any] = None
+
+class SuccessCriterion(BaseModel):
+    criterion_id: str
+    description: str
+    resource_type: str
+    expected_state: Dict[str, Any]
+    weight: int
+    fault_configuration: Optional[FaultConfiguration] = None
+
+class MissionData(BaseModel):
+    track: str
+    difficulty: str
+    level: str
+    title: str
+    business_context: str
+    time_limit_minutes: int
+    required_iam_roles: List[str]
+    resources_affected: int
+    involves_networking: bool
+    objectives: List[str]
+    success_criteria: List[SuccessCriterion]
+    mission_id: str
+    generated_by: str
+    created_at: str
 
 class LaunchLabRequest(BaseModel):
     user_email: EmailStr
+    scenario_payload: Dict[str, Any]  # Enforced payload input
 
 class StopLabRequest(BaseModel):
     user_email: EmailStr
-    vm_name: str
+    mission_id: str
 
-def cleanup_user_instance(user_email: str, vm_name: str, zone: str, credentials):
-    """Delete VM instance and remove user IAM permissions."""
+
+# --- MULTI-TENANT CLEANUP DAEMON LAYER ---
+
+def execute_lab_cleanup(user_email: str, mission_id: str, lab_manifest: Dict[str, Any], credentials):
+    """Sweeps allocated VMs and clears user bindings safely without breaking parallel labs."""
     try:
         instance_client = compute_v1.InstancesClient(credentials=credentials)
         projects_client = resourcemanager_v3.ProjectsClient(credentials=credentials)
         project_name = f"projects/{GCP_PROJECT_ID}"
 
-        print(f" -> [CLEANUP] Starting cleanup for {user_email} on {vm_name}")
+        print(f" -> [TEARDOWN] Purging sandbox for {user_email} | Mission: {mission_id}")
 
-        # Step 1: Delete the instance
-        print(f" -> [CLEANUP-DELETE] Deleting instance {vm_name}...")
-        delete_operation = instance_client.delete(
-            project=GCP_PROJECT_ID,
-            zone=zone,
-            instance=vm_name
-        )
+        # Delete instances bound to this specific lab allocation
+        for item in lab_manifest.get("allocated_vms", []):
+            try:
+                print(f" -> [TEARDOWN-COMPUTE] Dropping instance {item['name']} from zone {item['zone']}...")
+                instance_client.delete(project=GCP_PROJECT_ID, zone=item['zone'], instance=item['name'])
+            except Exception as e:
+                print(f" -> [TEARDOWN-ERROR] VM dropped failed: {str(e)}")
 
-        # Wait for deletion to complete
-        operation_client = compute_v1.ZoneOperationsClient(credentials=credentials)
-        timeout = 60
-        start_time = time.time()
-        while delete_operation.status != compute_v1.Operation.Status.DONE:
-            if time.time() - start_time > timeout:
-                print(f" -> [CLEANUP-DELETE-WARNING] Instance deletion timed out")
-                break
-            time.sleep(2)
-            delete_operation = operation_client.get(
-                project=GCP_PROJECT_ID,
-                zone=zone,
-                operation=delete_operation.name
-            )
-
-        print(f" -> [CLEANUP-DELETE] ✓ Instance {vm_name} deleted")
-
-        # Step 2: Remove user IAM permissions from project
-        print(f" -> [CLEANUP-IAM] Removing IAM permissions for {user_email}...")
+        # Clear IAM user bindings
         try:
             policy = projects_client.get_iam_policy(request={"resource": project_name})
-            user_member = f"user:{user_email}"
+            member_string = f"user:{user_email}"
+            
+            # Gather roles that need checking
+            roles_to_check = lab_manifest.get("roles", [])
+            
+            # Look at remaining active labs for this exact same user to avoid stripping 
+            # access roles they might still need for another parallel active challenge!
+            shared_user_labs = active_labs.get(user_email, {})
+            retained_roles = set()
+            for m_id, manifest in shared_user_labs.items():
+                if m_id != mission_id:
+                    retained_roles.update(manifest.get("roles", []))
 
-            # Iterate through bindings and remove this user
-            bindings_to_delete = []
-            for i, binding in enumerate(policy.bindings):
-                if user_member in binding.members:
-                    # Get the current members and filter out this user
-                    members_list = list(binding.members)
-                    members_list.remove(user_member)
-
-                    # If no members left, mark binding for deletion
-                    if not members_list:
-                        bindings_to_delete.append(i)
-                    else:
-                        # Update binding with remaining members
-                        del binding.members[:]
-                        binding.members.extend(members_list)
-
-            # Remove empty bindings (in reverse order to preserve indices)
-            for i in reversed(bindings_to_delete):
-                del policy.bindings[i]
+            for binding in policy.bindings:
+                if binding.role in roles_to_check and binding.role not in retained_roles:
+                    if member_string in binding.members:
+                        binding.members.remove(member_string)
 
             projects_client.set_iam_policy(request={"resource": project_name, "policy": policy})
-            print(f" -> [CLEANUP-IAM] ✓ IAM permissions removed for {user_email}")
+            print(f" -> [TEARDOWN-IAM] IAM reclamation checked/cleared.")
         except Exception as e:
-            print(f" -> [CLEANUP-IAM-WARNING] Could not remove IAM permissions: {str(e)}")
+            print(f" -> [TEARDOWN-IAM-ERROR] IAM cleanup broken: {str(e)}")
 
-        # Remove from tracking
-        if user_email in active_instances:
-            del active_instances[user_email]
-
-        print(f" -> [CLEANUP] ✓ Cleanup completed for {user_email}")
+        # Clean ledger nodes safely
+        if user_email in active_labs and mission_id in active_labs[user_email]:
+            del active_labs[user_email][mission_id]
+            if not active_labs[user_email]:
+                del active_labs[user_email]
 
     except Exception as e:
-        print(f" -> [CLEANUP-ERROR] Cleanup failed: {str(e)}")
+        print(f" -> [CRITICAL-TEARDOWN-FAILURE] Scavenger crash: {str(e)}")
 
-@app.get("/health")
-def health_check():
-    """Simple endpoint to verify that the local server is alive."""
-    return {"status": "Healthy", "message": "The orchestrator engine is active."}
+
+# --- MAIN ORCHESTRATOR ENDPOINT ---
 
 @app.post("/api/launch-lab")
 def launch_lab(request: LaunchLabRequest):
-    """
-    Orchestration endpoint: Provisions a basic GCP Compute Instance, sets networking tags,
-    and binds temporary project-level IAM permissions to the provided student email.
-    """
     try:
+        raw_data = request.scenario_payload.get("data", {})
+        if not raw_data:
+            raise HTTPException(status_code=400, detail="Malformed structure. 'data' wrapper missing.")
+        
+        mission = MissionData(**raw_data)
+        
         if not os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
-            raise FileNotFoundError(f"Service account key file missing at: {SERVICE_ACCOUNT_KEY_PATH}")
-            
-        credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH)
+            print(f" -> [DEV-MODE] Running without real GCP credentials")
+            credentials = None
+        else:
+            credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH)
+        
         project_name = f"projects/{GCP_PROJECT_ID}"
-
-        # -------------------------------------------------------------
-        # STEP 1: IAM ACCESS PROVISIONING (PROTOBUF SECURE ALIGNMENT)
-        # -------------------------------------------------------------
-        print(f" -> [IAM-PHASE] Granting platform identities to: {request.user_email}")
-        try:
-            projects_client = resourcemanager_v3.ProjectsClient(credentials=credentials)
-            policy = projects_client.get_iam_policy(request={"resource": project_name})
-
-            # Explicitly append using the strict protobuf .add model interface layout
-            # Grant browser role (to see the project)
-            policy.bindings.add(
-                role="roles/browser",
-                members=[f"user:{request.user_email}"]
-            )
-
-            # Grant compute viewer role (to see compute resources)
-            policy.bindings.add(
-                role="roles/compute.viewer",
-                members=[f"user:{request.user_email}"]
-            )
-
-            projects_client.set_iam_policy(request={"resource": project_name, "policy": policy})
-            print(f" -> [IAM-PHASE] ✓ Access parameters successfully synced. Pausing for global propagation...")
-            time.sleep(5)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"IAM Control Error: {str(e)}")
-
-        # -------------------------------------------------------------
-        # STEP 2: ADAPTIVE BLUEPRINT PARSING
-        # -------------------------------------------------------------
-        compute_criteria = next(
-            (c for c in HARDCODED_MISSION["success_criteria"] if c["resource_type"] == "compute_instance"), 
-            None
-        )
-        if not compute_criteria:
-            raise HTTPException(status_code=400, detail="No valid compute layout found in payload rules.")
-
-        expected_state = compute_criteria["expected_state"]
-        
-        # Extract metadata metrics from your layout with clear fallback parameters
-        name_suffix = expected_state.get("name_suffix", "sandbox-vm")
-        machine_type = expected_state.get("machine_type", "e2-micro")
-        zone = expected_state.get("zone", "us-central1-a")
-        network_name = expected_state.get("network", "default")
-        script_value = expected_state.get("startup_script", "#!/bin/bash\necho 'Server online.'")
-
-        # Generate a tracking suffix to enforce Naming Collision Protection boundaries
-        unique_id = str(uuid.uuid4())[:8]
-        vm_name = f"{name_suffix}-{unique_id}"
-
-        # -------------------------------------------------------------
-        # STEP 3: INFRASTRUCTURE VIRTUALIZATION PROVISIONING
-        # -------------------------------------------------------------
+        projects_client = resourcemanager_v3.ProjectsClient(credentials=credentials)
         instance_client = compute_v1.InstancesClient(credentials=credentials)
-        operation_client = compute_v1.ZoneOperationsClient(credentials=credentials)
 
-        instance = compute_v1.Instance()
-        instance.name = vm_name
-        instance.machine_type = f"zones/{zone}/machineTypes/{machine_type}"
+        # Unique hash suffix prevents collisions between multiple users or multiple runs of the same lab
+        unique_id = str(uuid.uuid4())[:8]
         
-        boot_disk = compute_v1.AttachedDisk(
-            boot=True,
-            auto_delete=True,
-            type_=compute_v1.AttachedDisk.Type.PERSISTENT.name,
-            initialize_params=compute_v1.AttachedDiskInitializeParams(
-                source_image="projects/debian-cloud/global/images/family/debian-11",
-                disk_size_gb=10
-            )
-        )
-        instance.disks = [boot_disk]
-
-        network_interface = compute_v1.NetworkInterface(
-            name=network_name,
-            access_configs=[compute_v1.AccessConfig(
-                name="External NAT",
-                type_=compute_v1.AccessConfig.Type.ONE_TO_ONE_NAT.name
-            )]
-        )
-        instance.network_interfaces = [network_interface]
-
-        # Enable default core firewall tracking tags natively
-        tags = compute_v1.Tags(items=["http-server", "https-server", "lb-server"])
-        instance.tags = tags
-
-        # Embed your scenario startup script metadata mapping arrays cleanly
-        instance.metadata = compute_v1.Metadata(
-            items=[compute_v1.Items(key="startup-script", value=script_value)]
-        )
-
-        print(f" -> [PROVISION-PHASE] Deploying custom scenario VM: {vm_name}")
-        operation = instance_client.insert(project=GCP_PROJECT_ID, zone=zone, instance_resource=instance)
-
-        # Polling Loop Tracker
-        print(" -> [POLLING-PHASE] Waiting for hardware provisioning to clear...")
-        start_time = time.time()
-        while operation.status != compute_v1.Operation.Status.DONE:
-            if time.time() - start_time > 90:
-                raise TimeoutError("Infrastructure generation timed out.")
-            time.sleep(3)
-            operation = operation_client.get(project=GCP_PROJECT_ID, zone=zone, operation=operation.name)
-
-        if operation.error:
-            raise Exception(f"GCP Engine Operation Error: {operation.error}")
-
-        print(f" -> [SUCCESS] Sandbox completely active. Link package generated.")
-
-        # Grant instance-level access (only to this specific VM)
-        print(f" -> [INSTANCE-IAM] Granting instance admin access to: {request.user_email} on {vm_name}")
-        try:
-            iam_policy = instance_client.get_iam_policy(
-                project=GCP_PROJECT_ID,
-                zone=zone,
-                resource=vm_name
-            )
-
-            binding = compute_v1.Binding()
-            binding.role = "roles/compute.instanceAdmin.v1"
-            binding.members = [f"user:{request.user_email}"]
-
-            iam_policy.bindings.append(binding)
-
-            instance_client.set_iam_policy(
-                project=GCP_PROJECT_ID,
-                zone=zone,
-                resource=vm_name,
-                zone_set_policy_request_resource=compute_v1.ZoneSetPolicyRequest(policy=iam_policy)
-            )
-            print(f" -> [INSTANCE-IAM] ✓ Instance admin role (compute.instanceAdmin.v1) granted to {request.user_email} for {vm_name} only")
-
-            # Verify the binding was set
-            verify_policy = instance_client.get_iam_policy(
-                project=GCP_PROJECT_ID,
-                zone=zone,
-                resource=vm_name
-            )
-            for b in verify_policy.bindings:
-                if f"user:{request.user_email}" in b.members:
-                    print(f" -> [INSTANCE-IAM-VERIFY] Confirmed: {request.user_email} has role {b.role} on {vm_name}")
-
-        except Exception as e:
-            print(f" -> [INSTANCE-IAM-ERROR] Failed to set instance-level access: {str(e)}")
-            raise
-
-        gcp_console_url = f"https://console.cloud.google.com/compute/instancesDetail/zones/{zone}/instances/{vm_name}?project={GCP_PROJECT_ID}"
-
-        # Track this instance for cleanup
-        time_limit_minutes = HARDCODED_MISSION["time_limit_minutes"]
-        active_instances[request.user_email] = {
-            "vm_name": vm_name,
-            "zone": zone,
-            "created_at": time.time(),
-            "time_limit_minutes": time_limit_minutes
+        lab_manifest = {
+            "mission_id": mission.mission_id,
+            "allocated_vms": [],
+            "roles": mission.required_iam_roles,
+            "created_at": time.time()
         }
 
-        # Schedule automatic cleanup after time limit
-        def auto_cleanup():
-            time.sleep(time_limit_minutes * 60)
-            print(f" -> [AUTO-CLEANUP] Time limit reached for {request.user_email}")
-            cleanup_user_instance(request.user_email, vm_name, zone, credentials)
+        # -------------------------------------------------------------
+        # STEP 1: IAM ALLOCATION FOR USER
+        # -------------------------------------------------------------
+        if credentials:
+            try:
+                policy = projects_client.get_iam_policy(request={"resource": project_name})
+                user_member = f"user:{request.user_email}"
 
-        cleanup_thread = threading.Thread(target=auto_cleanup, daemon=True)
-        cleanup_thread.start()
+                for role in mission.required_iam_roles:
+                    found = False
+                    for binding in policy.bindings:
+                        if binding.role == role:
+                            if user_member not in binding.members:
+                                binding.members.append(user_member)
+                            found = True
+                            break
+                    if not found:
+                        policy.bindings.add(role=role, members=[user_member])
+
+                projects_client.set_iam_policy(request={"resource": project_name, "policy": policy})
+                time.sleep(1)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"IAM Allocation Fault: {str(e)}")
+
+        # -------------------------------------------------------------
+        # STEP 2: DYNAMIC INSTANCE FABRICATION LOOP
+        # -------------------------------------------------------------
+        primary_console_url = None
+
+        for criterion in mission.success_criteria:
+            if criterion.resource_type == "compute_instance":
+                state = criterion.expected_state
+                fault = criterion.fault_configuration
+                
+                vm_name = f"{state.get('name_suffix', 'target')}-{unique_id}"
+                zone = state.get("zone", "us-central1-a")
+                
+                instance = compute_v1.Instance()
+                instance.name = vm_name
+                instance.machine_type = f"zones/{zone}/machineTypes/{state.get('machine_type', 'e2-micro')}"
+                
+                # Disks block
+                boot_disk = compute_v1.AttachedDisk(
+                    boot=True,
+                    auto_delete=True,
+                    type_=compute_v1.AttachedDisk.Type.PERSISTENT.name,
+                    initialize_params=compute_v1.AttachedDiskInitializeParams(
+                        source_image=state.get("boot_image", "projects/debian-cloud/global/images/family/debian-11"),
+                        disk_size_gb=state.get("disk_size_gb", 10)
+                    )
+                )
+                instance.disks = [boot_disk]
+
+                # Networking Network Interfacing & Target Custom Routing Setup
+                network_name = state.get("network", "default")
+                network_uri = network_name if network_name.startswith("projects/") else f"projects/{GCP_PROJECT_ID}/global/networks/{network_name}"
+                
+                net_interface = compute_v1.NetworkInterface(network=network_uri)
+                if state.get("ssh_accessible", True):
+                    net_interface.access_configs = [compute_v1.AccessConfig(
+                        name="External NAT",
+                        type_=compute_v1.AccessConfig.Type.ONE_TO_ONE_NAT.name
+                    )]
+                instance.network_interfaces = [net_interface]
+
+                # Setup dynamic target network tags (Crucial for L2 / L3 Firewall isolation tasks)
+                network_tags = state.get("network_tags", [])
+                
+                # Setup metadata structures
+                metadata_items = []
+                raw_metadata = state.get("metadata", {})
+                for k, v in raw_metadata.items():
+                    metadata_items.append(compute_v1.Items(key=k, value=str(v)))
+
+                # -------------------------------------------------------------
+                # DECOUPLED FAULT CONFIGURATION INJECTION ENGINE
+                # -------------------------------------------------------------
+                if fault:
+                    if fault.type == "STARTUP_SCRIPT_CRASH":
+                        metadata_items.append(compute_v1.Items(key="startup-script", value=str(fault.payload)))
+                    elif fault.type == "CORRUPT_METADATA" and isinstance(fault.payload, dict):
+                        for k, v in fault.payload.items():
+                            metadata_items.append(compute_v1.Items(key=k, value=str(v)))
+                    elif fault.type == "MISCONFIGURED_TAGS" and isinstance(fault.payload, list):
+                        # Overwrite or mutate standard tags with the broken ones for users to clear
+                        network_tags = fault.payload
+
+                # Set structural elements back to instance object
+                instance.metadata = compute_v1.Metadata(items=metadata_items)
+                if network_tags:
+                    instance.tags = compute_v1.Tags(items=network_tags)
+
+                # Attach specific Service Account Identities if parsed (L3 Target Contexts)
+                sa_setup = state.get("service_account_setup")
+                if sa_setup:
+                    instance.service_accounts = [compute_v1.ServiceAccount(
+                        email=sa_setup.get("email"),
+                        scopes=sa_setup.get("scopes", ["https://www.googleapis.com/auth/cloud-platform"])
+                    )]
+
+                # Issue provisioning execution via API client
+                if credentials:
+                    print(f" -> [ORCHESTRATOR] Spawning real node: {vm_name}")
+                    instance_client.insert(project=GCP_PROJECT_ID, zone=zone, instance_resource=instance)
+                
+                lab_manifest["allocated_vms"].append({"name": vm_name, "zone": zone})
+                
+                if not primary_console_url:
+                    primary_console_url = f"https://console.cloud.google.com/compute/instancesDetail/zones/{zone}/instances/{vm_name}?project={GCP_PROJECT_ID}"
+
+        # Insert securely to memory ledger mapped under separate users & missions
+        if request.user_email not in active_labs:
+            active_labs[request.user_email] = {}
+        active_labs[request.user_email][mission.mission_id] = lab_manifest
+
+        # Timed Janitor daemon thread tracking
+        def lab_janitor_daemon():
+            time.sleep(mission.time_limit_minutes * 60)
+            if credentials:
+                execute_lab_cleanup(request.user_email, mission.mission_id, lab_manifest, credentials)
+
+        scavenger = threading.Thread(target=lab_janitor_daemon, daemon=True)
+        scavenger.start()
 
         return {
             "status": "Success",
-            "vm_name": vm_name,
-            "gcp_console_url": gcp_console_url,
-            "time_limit_minutes": time_limit_minutes,
+            "gcp_console_url": primary_console_url,
+            "allocated_vm_names": [v["name"] for v in lab_manifest["allocated_vms"]],
             "display_data": {
-                "business_context": HARDCODED_MISSION["business_context"],
-                "objectives": HARDCODED_MISSION["objectives"]
-            },
-            "metadata": {
-                "title": HARDCODED_MISSION["title"],
-                "track": HARDCODED_MISSION["track"],
-                "difficulty": HARDCODED_MISSION["difficulty"],
-                "time_limit_minutes": time_limit_minutes
+                "title": mission.title,
+                "level": mission.level,
+                "objectives": mission.objectives
             }
         }
 
     except Exception as e:
-        print(f" -> [FAILURE] Orchestration halted: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/api/stop-lab")
 def stop_lab(request: StopLabRequest):
-    """
-    Stop and cleanup a lab instance for a user.
-    Deletes the VM and removes all IAM permissions.
-    """
-    try:
-        if not os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
-            raise FileNotFoundError(f"Service account key file missing at: {SERVICE_ACCOUNT_KEY_PATH}")
+    user_email = request.user_email
+    mission_id = request.mission_id
 
+    if user_email not in active_labs or mission_id not in active_labs[user_email]:
+        raise HTTPException(status_code=404, detail="Active lab variant configuration not found.")
+
+    if os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
         credentials = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_KEY_PATH)
+    else:
+        credentials = None
 
-        if request.user_email not in active_instances:
-            raise HTTPException(status_code=404, detail=f"No active instance found for {request.user_email}")
-
-        instance_info = active_instances[request.user_email]
-        vm_name = instance_info["vm_name"]
-        zone = instance_info["zone"]
-
-        print(f" -> [STOP-LAB] Stopping lab for {request.user_email}")
-
-        # Run cleanup
-        cleanup_user_instance(request.user_email, vm_name, zone, credentials)
-
-        return {
-            "status": "Success",
-            "message": f"Lab stopped and resources cleaned up for {request.user_email}",
-            "vm_name": vm_name
-        }
-
-    except Exception as e:
-        print(f" -> [STOP-LAB-ERROR] Failed to stop lab: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    execute_lab_cleanup(user_email, mission_id, active_labs[user_email][mission_id], credentials)
+    return {"status": "Success", "message": "Infrastructure swept successfully."}
