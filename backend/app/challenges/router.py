@@ -87,12 +87,14 @@ async def start_challenge(
             session_id=session.session_id,
             gcp_project_id=GCP_PROJECT_ID,
             scoped_sa_email=current_user.email,
-            resource_prefix=f"lab-{str(session.session_id)[:8]}-{str(current_user.user_id)[:8]}",
+            # The DB schema currently caps resource_prefix at VARCHAR(20).
+            resource_prefix=f"lab-{str(session.session_id)[:8]}-{str(current_user.user_id)[:4]}",
             status="PROVISIONING",
             expires_at=session.expires_at,
         )
         db.add(environment)
 
+        gcp_result = None
         try:
             # Provision GCP environment
             gcp_result = ChallengeService.provision_gcp_environment(
@@ -121,6 +123,15 @@ async def start_challenge(
         except Exception as e:
             # Rollback on any failure (including provisioning failure)
             db.rollback()
+            if gcp_result and gcp_result.get("vm_name") and gcp_result.get("zone"):
+                try:
+                    ChallengeService.cleanup_environment(
+                        user_email=current_user.email,
+                        vm_name=gcp_result["vm_name"],
+                        zone=gcp_result["zone"],
+                    )
+                except Exception as cleanup_error:
+                    print(f"[ROLLBACK-CLEANUP-ERROR] {cleanup_error}")
             # Cleanup will be handled by expires_at if VM was created
             print(f"[ROLLBACK] Challenge start failed, rolling back: {str(e)}")
             raise

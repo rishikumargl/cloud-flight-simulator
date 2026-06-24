@@ -40,7 +40,7 @@ function ChallengesPage() {
 
       // Step 2: Start challenge with mission_id
       const challenge = await api.startChallenge(mission_id);
-      const session_id = challenge.session_id;
+      const session_id = challenge.session?.session_id ?? challenge.session_id;
 
       if (!session_id) {
         throw new Error("No session_id returned from challenge start");

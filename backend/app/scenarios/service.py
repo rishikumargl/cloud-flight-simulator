@@ -132,10 +132,17 @@ class ScenarioService:
             from sqlalchemy import text
 
             query = text("""
-                SELECT DISTINCT m.* FROM missions m
-                INNER JOIN challenge_sessions cs ON m.mission_id = cs.mission_id
-                WHERE cs.user_id = :user_id
-                ORDER BY cs.created_at DESC
+                SELECT m.*
+                FROM missions m
+                INNER JOIN (
+                    SELECT DISTINCT ON (cs.mission_id)
+                        cs.mission_id,
+                        cs.created_at
+                    FROM challenge_sessions cs
+                    WHERE cs.user_id = :user_id
+                    ORDER BY cs.mission_id, cs.created_at DESC
+                ) recent ON recent.mission_id = m.mission_id
+                ORDER BY recent.created_at DESC
                 LIMIT 5
             """)
 
