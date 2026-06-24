@@ -1,7 +1,11 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+REPO_ROOT = BACKEND_DIR.parent
 
 
 def _get_required_env(key: str) -> str:
@@ -9,6 +13,33 @@ def _get_required_env(key: str) -> str:
     if not value:
         raise ValueError(f"Environment variable {key} is required but not set")
     return value
+
+
+def _resolve_optional_path(value: str | None) -> str | None:
+    """Resolve env file paths against common project roots.
+
+    Supports values like:
+    - `secrets/service-account-key.json` when running from `backend/`
+    - `backend/secrets/service-account-key.json` when expressed from repo root
+    """
+    if not value:
+        return None
+
+    path = Path(value)
+    if path.is_absolute():
+        return str(path)
+
+    candidates = [
+        Path.cwd() / path,
+        BACKEND_DIR / path,
+        REPO_ROOT / path,
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return str(candidate.resolve())
+
+    # Fall back to a stable absolute path so downstream error messages are clearer.
+    return str((REPO_ROOT / path).resolve())
 
 
 DATABASE_URL = _get_required_env("DATABASE_URL")
@@ -21,3 +52,7 @@ CLERK_PEM_PUBLIC_KEY = os.getenv("CLERK_PEM_PUBLIC_KEY", "")
 # Clerk issuer - matches the JWT 'iss' claim
 # For environment dynamic-raptor-82.clerk.accounts.dev
 CLERK_ISSUER = os.getenv("CLERK_ISSUER", "https://dynamic-raptor-82.clerk.accounts.dev")
+
+# GCP configuration
+GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "cloud-flight-sim")
+GCP_KEY_PATH = _resolve_optional_path(os.getenv("GCP_KEY_PATH", None))

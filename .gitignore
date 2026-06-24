@@ -28,3 +28,13 @@ docs/Team-Titans.md
 
 .tanstack/
 backfill_emails.py
+
+.secrests/
+secrests/
+secrets/
+backend/secrets/
+service-account-key.json
+*.json.key
+gcp-*.json
+
+*.zip

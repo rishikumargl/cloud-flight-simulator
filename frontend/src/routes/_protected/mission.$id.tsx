@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import api from "../../api/mockApi";
+import api from "../../api/apiService";
 
 export const Route = createFileRoute("/_protected/mission/$id")({
   head: () => ({ meta: [{ title: "Mission — CloudFlight" }] }),
@@ -8,25 +8,93 @@ export const Route = createFileRoute("/_protected/mission/$id")({
 });
 
 function MissionPage() {
-  const { id } = Route.useParams();
+  // $id is the session_id (returned by startChallenge)
+  const { id: session_id } = Route.useParams();
   const navigate = Route.useNavigate();
   const [mission, setMission] = useState<any>(null);
+  const [session, setSession] = useState<any>(null);
+  const [environment, setEnvironment] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [stopping, setStopping] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    api.getMissionDetails(id).then((d) => { setMission(d); setLoading(false); });
-  }, [id]);
+    // Step 1: get challenge status → gives us mission_id + environment
+    api.getChallengeStatus(session_id).then(async (statusData) => {
+      setSession(statusData.session);
+      setEnvironment(statusData.environment);
+      const mission_id = statusData.session?.mission_id;
+      if (mission_id) {
+        // Step 2: get actual mission details
+        const missionData = await api.getMissionDetails(mission_id);
+        setMission(missionData);
+      }
+      setLoading(false);
+    }).catch((err) => {
+      console.error("Failed to load mission:", err);
+      setLoading(false);
+    });
+  }, [session_id]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (!session?.expires_at) return;
+    const tick = () => {
+      const diff = Math.floor((new Date(session.expires_at).getTime() - Date.now()) / 1000);
+      setTimeLeft(Math.max(0, diff));
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [session?.expires_at]);
+
+  const handleStop = async () => {
+    setStopping(true);
+    try {
+      await api.stopChallenge(session_id);
+      navigate({ to: "/challenges" });
+    } catch (err) {
+      console.error("Failed to stop challenge:", err);
+      setStopping(false);
+    }
+  };
+
+  const formatTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
 
   if (loading) {
     return (
       <div className="space-y-6">
-        {[...Array(3)].map((_, i) => <div key={i} className="h-40 animate-pulse rounded-3xl bg-muted" />)}
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-40 animate-pulse rounded-3xl bg-muted" />
+        ))}
       </div>
     );
   }
 
-  const trackLabel = mission?.track?.charAt(0).toUpperCase() + mission?.track?.slice(1);
-  const diffLabel = mission?.difficulty?.charAt(0).toUpperCase() + mission?.difficulty?.slice(1);
+  if (!mission) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <div className="text-center">
+          <p className="text-foreground">Could not load mission details.</p>
+          <button onClick={() => navigate({ to: "/challenges" })} className="btn-ghost mt-4">
+            Back to Challenges
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const trackLabel = mission?.track?.charAt(0).toUpperCase() + mission?.track?.slice(1).toLowerCase();
+  const diffLabel = mission?.difficulty?.charAt(0).toUpperCase() + mission?.difficulty?.slice(1).toLowerCase();
+  const timeLimit = mission?.time_limit_minutes;
+  const businessContext = mission?.business_context;
+  const successCriteria = mission?.success_criteria ?? [];
+  const envStatus = environment?.status;
+  const gcpProjectId = environment?.gcp_project_id;
 
   return (
     <div className="space-y-8">
@@ -41,15 +109,32 @@ function MissionPage() {
               <span className="mono-label rounded-full border border-white/20 bg-white/10 px-3 py-1 !text-white/70">
                 {diffLabel}
               </span>
+              {envStatus && (
+                <span className={`mono-label rounded-full border px-3 py-1 ${
+                  envStatus === "READY"
+                    ? "border-green-500/30 bg-green-500/10 !text-green-300"
+                    : envStatus === "PROVISIONING"
+                    ? "border-yellow-500/30 bg-yellow-500/10 !text-yellow-300"
+                    : "border-white/20 bg-white/10 !text-white/70"
+                }`}>
+                  {envStatus}
+                </span>
+              )}
             </div>
             <h1 className="font-display text-[clamp(1.8rem,4vw,3rem)] font-medium leading-tight tracking-[-0.03em]">
               {mission?.title}
             </h1>
           </div>
           <div className="shrink-0 text-right">
-            <div className="mono-label !text-white/50">TIME LIMIT</div>
-            <div className="font-display text-[2.5rem] font-medium leading-none text-white">{mission?.timeLimit}</div>
-            <div className="mono-label !text-white/50">minutes</div>
+            <div className="mono-label !text-white/50">TIME REMAINING</div>
+            <div className={`font-display text-[2.5rem] font-medium leading-none ${
+              timeLeft !== null && timeLeft < 300 ? "text-red-400" : "text-white"
+            }`}>
+              {timeLeft !== null ? formatTime(timeLeft) : `${timeLimit} min`}
+            </div>
+            <div className="mono-label !text-white/50">
+              {timeLeft !== null ? "remaining" : "time limit"}
+            </div>
           </div>
         </div>
       </div>
@@ -59,7 +144,7 @@ function MissionPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="rounded-3xl border border-border bg-surface p-8">
             <div className="mono-label mb-4">BUSINESS SCENARIO</div>
-            <p className="text-[15px] leading-relaxed text-foreground">{mission?.businessScenario}</p>
+            <p className="text-[15px] leading-relaxed text-foreground">{businessContext}</p>
           </div>
 
           <div className="rounded-3xl border border-border bg-surface p-8">
@@ -78,11 +163,16 @@ function MissionPage() {
 
           <div className="rounded-3xl border border-border bg-surface p-8">
             <div className="mono-label mb-5">SUCCESS CRITERIA</div>
-            <ul className="space-y-2">
-              {mission?.successCriteria?.map((c: string, i: number) => (
+            <ul className="space-y-3">
+              {successCriteria.map((c: any, i: number) => (
                 <li key={i} className="flex items-start gap-3 text-[14px] text-foreground">
                   <span className="mt-0.5 text-primary">✓</span>
-                  {c}
+                  <div>
+                    <span>{c.description ?? c}</span>
+                    {c.weight && (
+                      <span className="ml-2 mono-label text-[11px]">{c.weight}%</span>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -102,33 +192,54 @@ function MissionPage() {
                 <span className="text-foreground">Difficulty</span>
                 <span className="font-medium text-ink">{diffLabel}</span>
               </div>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-b border-border pb-3">
                 <span className="text-foreground">Time limit</span>
-                <span className="font-medium text-ink">{mission?.timeLimit} min</span>
+                <span className="font-medium text-ink">{timeLimit} min</span>
               </div>
+              {gcpProjectId && (
+                <div className="flex items-center justify-between">
+                  <span className="text-foreground">GCP Project</span>
+                  <span className="font-medium text-ink font-mono text-[12px]">{gcpProjectId}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="rounded-3xl border border-border bg-surface p-7">
-            <div className="mono-label mb-5">TASKS</div>
-            <div className="space-y-3">
-              {mission?.tasks?.map((t: any) => (
-                <div key={t.id} className="flex items-start gap-3 text-[13px]">
-                  <span className={`mt-0.5 ${t.completed ? "text-primary" : "text-muted-foreground"}`}>
-                    {t.completed ? "✓" : "○"}
-                  </span>
-                  <span className={t.completed ? "text-ink" : "text-foreground"}>{t.title}</span>
-                </div>
-              ))}
+          {/* GCP Console link */}
+          {envStatus === "READY" && (
+            <div className="rounded-3xl border border-border bg-surface p-7">
+              <div className="mono-label mb-4">GCP LAB ENVIRONMENT</div>
+              <p className="text-[13px] text-foreground mb-4">
+                Your live GCP environment is ready. Open the Google Cloud Console to complete the mission objectives.
+              </p>
+              <a
+                href={`https://console.cloud.google.com/?project=${gcpProjectId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-[14px] font-medium text-white hover:opacity-90 transition"
+              >
+                Open GCP Console ↗
+              </a>
             </div>
-          </div>
+          )}
+
+          {envStatus === "PROVISIONING" && (
+            <div className="rounded-3xl border border-yellow-200 bg-yellow-50 p-7">
+              <div className="mono-label mb-3 text-yellow-700">PROVISIONING</div>
+              <p className="text-[13px] text-yellow-800">Your GCP environment is being set up. This usually takes 1–2 minutes.</p>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-yellow-200">
+                <div className="h-full w-1/2 animate-pulse rounded-full bg-yellow-500" />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-3">
             <button
-              onClick={() => navigate({ to: "/workspace/$id", params: { id } })}
-              className="btn-primary w-full text-center"
+              onClick={handleStop}
+              disabled={stopping}
+              className="w-full inline-flex items-center justify-center rounded-full border border-red-200 bg-red-50 px-5 py-3 text-[14px] font-medium text-red-600 hover:bg-red-100 transition disabled:opacity-50"
             >
-              Start Mission
+              {stopping ? "Stopping..." : "End Mission & Clean Up"}
             </button>
             <button
               onClick={() => navigate({ to: "/challenges" })}

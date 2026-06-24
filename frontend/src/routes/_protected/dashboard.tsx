@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowRight, Zap } from "lucide-react";
-import api from "../../api/mockApi";
+import api from "../../api/apiService";
 import { learningTracks, trackRows } from "../../data/mockData";
 import useAuthStore from "../../hooks/useAuth";
 
