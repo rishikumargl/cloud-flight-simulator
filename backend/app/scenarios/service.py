@@ -270,7 +270,13 @@ class ScenarioService:
         # Define the prompt template for COMPUTE ENGINE ONLY (e2-micro, free tier zones)
         prompt_template = PromptTemplate(
             input_variables=["difficulty", "zone", "prior_missions", "success_rate", "avg_score", "total_attempts"],
-            template="""You are an expert Google Cloud instructor specializing in Compute Engine. Generate a realistic, educational GCP Compute Engine mission using free tier resources only.
+            template="""You are an expert Google Cloud instructor specializing in incident-response scenarios on Compute Engine. Generate a realistic, educational GCP Compute Engine mission where learners repair a deliberately broken VM.
+
+MISSION STYLE: Incident Response Labs
+- Learners receive a DELIBERATELY BROKEN VM with injected faults
+- Learners must DIAGNOSE and REPAIR the issues in GCP Console
+- Mission title should describe the problem: "Fix the...", "Repair the...", "Restore the..."
+- Business context should explain WHY the VM is broken and what impact it has
 
 IMPORTANT:
 - All missions MUST use ONLY Compute Engine (no other GCP services)
@@ -288,60 +294,86 @@ Learner Profile:
 - Average Score: {avg_score:.1f}%
 - Recent Missions: {prior_missions}
 
-Generate a NEW and UNIQUE Compute Engine mission that:
-1. Teaches DIFFERENT practical e2-micro VM skills each time
+Generate a NEW and UNIQUE Compute Engine incident-response mission that:
+1. Teaches DIFFERENT practical debugging and repair skills each time
 2. Matches the {difficulty} level
 3. AVOIDS these recent missions: {prior_missions}
 4. Personalizes based on learner success rate: {success_rate:.1f}%
-5. Includes hands-on GCP Console tasks
+5. Includes hands-on GCP Console troubleshooting tasks
 6. Uses ONLY e2-micro machine type (free tier)
-7. Generates DYNAMIC success criteria based on the specific mission task
+7. GENERATES repair criteria with expected_state + fault_configuration
 
 Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
 {{
   "track": "COMPUTE",
   "difficulty": "{difficulty}",
-  "title": "UNIQUE mission title (e.g., 'Deploy Web Server', 'Configure SSH Access', 'Set Up Startup Script')",
-  "business_context": "Specific real-world scenario explaining WHY learners need this Compute Engine skill",
+  "title": "INCIDENT RESPONSE: Fix the... (e.g., 'Fix the Misconfigured Web Server', 'Repair the Broken Startup Script', 'Restore the Corrupted Metadata')",
+  "business_context": "Specific incident scenario: explain WHAT is broken, WHY it's broken, and the IMPACT on users. Example: 'A production web server is down because its metadata is corrupted, causing health check failures.'",
   "objectives": [
-    "1. First step to complete",
-    "2. Second step to complete",
-    "3. Third step to complete"
+    "1. First diagnostic or repair step",
+    "2. Second diagnostic or repair step",
+    "3. Third diagnostic or repair step or validation"
   ],
   "success_criteria": [
     {{
       "criterion_id": "unique-id-1",
-      "description": "SPECIFIC criterion for this mission (e.g., 'VM created with correct labels', 'SSH configured', 'Web server running')",
+      "description": "SPECIFIC repair criterion (e.g., 'Metadata is corrected', 'Startup script is fixed', 'VM status is RUNNING')",
       "resource_type": "compute_instance",
       "expected_state": {{
         "name_suffix": "descriptive-name-for-this-mission",
-        "machine_type": "e2-micro"
+        "machine_type": "e2-micro",
+        "metadata": {{"key": "value"}},
+        "status": "RUNNING"
       }},
-      "weight": 34
+      "weight": 34,
+      "fault_configuration": {{
+        "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
+        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1", "tag2"],
+        "description": "Explanation of what is broken and why"
+      }}
     }},
     {{
       "criterion_id": "unique-id-2",
-      "description": "SECOND specific criterion for this mission (testing different aspect)",
+      "description": "SECOND repair criterion (testing different aspect of the same broken VM)",
       "resource_type": "compute_instance",
       "expected_state": {{
         "name_suffix": "descriptive-name-for-this-mission",
-        "machine_type": "e2-micro"
+        "machine_type": "e2-micro",
+        "metadata": {{"key": "value"}},
+        "status": "RUNNING"
       }},
-      "weight": 33
+      "weight": 33,
+      "fault_configuration": {{
+        "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
+        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1"],
+        "description": "Explanation of the second fault"
+      }}
     }},
     {{
       "criterion_id": "unique-id-3",
-      "description": "THIRD specific criterion for this mission (testing another aspect)",
+      "description": "THIRD repair criterion (final validation or readiness check)",
       "resource_type": "compute_instance",
       "expected_state": {{
         "name_suffix": "descriptive-name-for-this-mission",
-        "machine_type": "e2-micro"
+        "machine_type": "e2-micro",
+        "metadata": {{"key": "value"}},
+        "status": "RUNNING"
       }},
-      "weight": 33
+      "weight": 33,
+      "fault_configuration": {{
+        "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
+        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1"],
+        "description": "Explanation of the third fault"
+      }}
     }}
   ],
   "time_limit_minutes": 45
 }}
+
+FAULT TYPE GUIDANCE:
+- STARTUP_SCRIPT_CRASH: payload is a bash script that fails (e.g., "#!/bin/bash\\nexit 1")
+- CORRUPT_METADATA: payload is a dict of {metadata_key: wrong_value} (e.g., {"environment": "broken"})
+- MISCONFIGURED_TAGS: payload is a list of wrong tags (e.g., ["http-server"] instead of ["http-server", "https-server", "lb-server"])
 
 CRITICAL RULES:
 - Track MUST be "COMPUTE"
@@ -350,17 +382,21 @@ CRITICAL RULES:
 - Machine type MUST ALWAYS be "e2-micro"
 - Zone MUST ALWAYS be {zone} (randomly selected from: us-west1-a, us-central1-a, us-east1-a)
 - resource_type MUST be ONLY "compute_instance"
-- Include EXACTLY 3 success criteria that test DIFFERENT aspects of THIS specific mission
-- Each criterion description MUST be specific to the mission (not generic)
+- EVERY criterion MUST have expected_state + fault_configuration (both required)
+- expected_state MUST include: name_suffix, machine_type, metadata (if testing metadata), status (if testing status)
+- Include EXACTLY 3 success criteria testing DIFFERENT aspects of repair
+- Each criterion description MUST be about REPAIRING or VALIDATING (not creating)
+- Each fault_configuration MUST specify type + payload + description
 - time_limit_minutes: 30-45 for BEGINNER, 45-60 for INTERMEDIATE, 60-90 for ADVANCED
-- objectives MUST be numbered steps specific to this mission (3 steps)
-- business_context MUST be specific scenario, NOT generic VM management
-- title MUST be unique and avoid: {prior_missions}
+- objectives MUST be numbered diagnostic/repair steps specific to this mission (3 steps)
+- business_context MUST describe the incident: what's broken, why, and impact
+- title MUST be incident-focused: "Fix the...", "Repair the...", "Restore the..."
+- title MUST avoid: {prior_missions}
 - Return ONLY JSON, no extra text
 - ABSOLUTELY NO other GCP services (Compute Engine only)
 - ABSOLUTELY NO other machine types (only e2-micro)
 - ABSOLUTELY NO other zones (only us-west1-a, us-central1-a, or us-east1-a as provided)
-- EVERY mission MUST be different - generate creative Compute Engine tasks
+- EVERY mission MUST be different - generate creative incident scenarios
 """,
         )
 

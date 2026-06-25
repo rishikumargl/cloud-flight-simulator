@@ -36,8 +36,11 @@ class ChallengeService:
 
     @staticmethod
     def extract_provisioning_params(mission: Mission):
-        """Extract GCP provisioning parameters from mission success_criteria."""
-        # Find compute_instance criterion
+        """Extract GCP provisioning parameters from mission success_criteria.
+
+        Includes both expected_state and fault_configuration if present.
+        """
+        # Find compute_instance criterion (use first one as baseline)
         compute_criteria = next(
             (c for c in mission.success_criteria
              if isinstance(c, dict) and c.get("resource_type") == "compute_instance"),
@@ -48,6 +51,7 @@ class ChallengeService:
             return None
 
         expected_state = compute_criteria.get("expected_state", {})
+        fault_config = compute_criteria.get("fault_configuration")
 
         return {
             "name_suffix": expected_state.get("name_suffix", "sandbox-vm"),
@@ -55,6 +59,9 @@ class ChallengeService:
             "zone": expected_state.get("zone", "us-central1-a"),
             "network": expected_state.get("network", "default"),
             "startup_script": expected_state.get("startup_script", "#!/bin/bash\necho 'Server online.'"),
+            "metadata": expected_state.get("metadata", {}),
+            "network_tags": expected_state.get("network_tags", ["http-server", "https-server", "lb-server"]),
+            "fault_configuration": fault_config,
         }
 
     @staticmethod
@@ -96,9 +103,37 @@ class ChallengeService:
         zone = provisioning_params["zone"]
         network_name = provisioning_params["network"]
         script_value = provisioning_params["startup_script"]
+        expected_metadata = provisioning_params.get("metadata", {})
+        expected_tags = provisioning_params.get("network_tags", ["http-server", "https-server", "lb-server"])
+        fault_config = provisioning_params.get("fault_configuration")
 
         unique_id = str(uuid4())[:8]
         vm_name = f"{name_suffix}-{unique_id}"
+
+        # Step 2.5: Determine VM configuration (apply faults during construction)
+        # Start with baseline configuration
+        vm_metadata = {"startup-script": script_value}
+        vm_metadata.update(expected_metadata)
+        vm_tags = list(expected_tags)
+
+        # If fault_configuration exists, apply it during VM construction
+        if fault_config:
+            fault_type = fault_config.get("type")
+            payload = fault_config.get("payload")
+
+            if fault_type == "STARTUP_SCRIPT_CRASH":
+                # Use faulty startup script from payload
+                vm_metadata["startup-script"] = payload
+
+            elif fault_type == "CORRUPT_METADATA":
+                # Corrupt metadata by overwriting expected values
+                if isinstance(payload, dict):
+                    vm_metadata.update(payload)
+
+            elif fault_type == "MISCONFIGURED_TAGS":
+                # Use wrong tags from payload
+                if isinstance(payload, list):
+                    vm_tags = payload
 
         # Step 3: Provision VM
         instance_client = compute_v1.InstancesClient(credentials=credentials)
@@ -128,11 +163,13 @@ class ChallengeService:
         )
         instance.network_interfaces = [network_interface]
 
-        tags = compute_v1.Tags(items=["http-server", "https-server", "lb-server"])
+        # Apply tags (possibly with fault injection)
+        tags = compute_v1.Tags(items=vm_tags)
         instance.tags = tags
 
+        # Apply metadata (possibly with fault injection)
         instance.metadata = compute_v1.Metadata(
-            items=[compute_v1.Items(key="startup-script", value=script_value)]
+            items=[compute_v1.Items(key=k, value=v) for k, v in vm_metadata.items()]
         )
 
         print(f"[PROVISION-PHASE] Deploying VM: {vm_name}")
@@ -185,6 +222,88 @@ class ChallengeService:
             "zone": zone,
             "gcp_console_url": gcp_console_url,
         }
+
+    @staticmethod
+    def _inject_fault(instance_client, project: str, zone: str, vm_name: str, fault_config: dict):
+        """Inject a fault into the provisioned VM.
+
+        Modifies the live instance to create a deliberately broken environment.
+        Called after VM is fully provisioned and ready.
+
+        Args:
+            instance_client: Compute API InstancesClient
+            project: GCP project ID
+            zone: GCP zone
+            vm_name: Name of the VM to modify
+            fault_config: dict with keys: type, payload, description
+
+        Supported fault types:
+        - STARTUP_SCRIPT_CRASH: payload is bash script that exits with error
+        - CORRUPT_METADATA: payload is dict of {key: wrong_value}
+        - MISCONFIGURED_TAGS: payload is list of wrong tags
+        """
+        if not fault_config:
+            return
+
+        fault_type = fault_config.get("type")
+        payload = fault_config.get("payload")
+        description = fault_config.get("description", "Unknown fault")
+
+        print(f"[FAULT-INJECTION] Injecting {fault_type}: {description}")
+
+        try:
+            # Fetch current instance state
+            instance = instance_client.get(project=project, zone=zone, instance=vm_name)
+
+            if fault_type == "STARTUP_SCRIPT_CRASH":
+                # Replace startup script with crashing version
+                new_metadata = compute_v1.Metadata(
+                    items=[compute_v1.Items(key="startup-script", value=payload)]
+                )
+                instance_client.set_metadata(
+                    project=project,
+                    zone=zone,
+                    resource=vm_name,
+                    metadata_resource=new_metadata
+                )
+                print(f"[FAULT-INJECTION] Startup script corrupted: {description}")
+
+            elif fault_type == "CORRUPT_METADATA":
+                # Overwrite metadata keys with wrong values
+                current_metadata = {}
+                if instance.metadata and instance.metadata.items:
+                    current_metadata = {item.key: item.value for item in instance.metadata.items}
+
+                # Apply corruption
+                if isinstance(payload, dict):
+                    current_metadata.update(payload)
+
+                new_metadata = compute_v1.Metadata(
+                    items=[compute_v1.Items(key=k, value=v) for k, v in current_metadata.items()]
+                )
+                instance_client.set_metadata(
+                    project=project,
+                    zone=zone,
+                    resource=vm_name,
+                    metadata_resource=new_metadata
+                )
+                print(f"[FAULT-INJECTION] Metadata corrupted: {description}")
+
+            elif fault_type == "MISCONFIGURED_TAGS":
+                # Replace tags with wrong ones
+                if isinstance(payload, list):
+                    instance.tags = compute_v1.Tags(items=payload)
+                    instance_client.update(
+                        project=project,
+                        zone=zone,
+                        instance=vm_name,
+                        instance_resource=instance
+                    )
+                    print(f"[FAULT-INJECTION] Tags misconfigured: {description}")
+
+        except Exception as e:
+            print(f"[FAULT-INJECTION-ERROR] Failed to inject fault: {str(e)}")
+            raise
 
     @staticmethod
     def cleanup_environment(user_email: str, vm_name: str, zone: str):

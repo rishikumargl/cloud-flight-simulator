@@ -1,0 +1,64 @@
+[P3][P4][P5] Implement incident-response labs with fault injection and evaluation
+
+PHASE A: FAULT INJECTION
+- Add FaultConfiguration model to SuccessCriteria for incident-response missions
+- Update scenario generation prompt to request fault configurations
+- Integrate fault injection into provisioning pipeline (applies during VM config build)
+- Faults applied before instance creation: STARTUP_SCRIPT_CRASH, CORRUPT_METADATA, MISCONFIGURED_TAGS
+- Add challenges/__init__.py package marker for consistency
+
+Files modified:
+- backend/app/scenarios/schemas.py: Add FaultConfiguration model, update SuccessCriteria
+- backend/app/scenarios/service.py: Update LLM prompt to generate incident-response missions
+- backend/app/challenges/service.py: Add fault-aware VM configuration and extraction
+- backend/app/challenges/__init__.py: New package marker
+
+PHASE B: EVALUATION SERVICE
+- Create complete P5 evaluation domain from scratch
+- Implement EvaluationService: validate repairs against mission criteria
+- Fetch live GCP state, never cache results, compare against expected_state only
+- Calculate weighted scores, persist evaluation results
+- Support all success_criteria with flexible validation
+
+New files:
+- backend/app/evaluation/__init__.py: Package documentation
+- backend/app/evaluation/schemas.py: Evaluation request/response contracts
+- backend/app/evaluation/models.py: ORM mapping to evaluations table
+- backend/app/evaluation/service.py: Core validation logic (210 lines)
+- backend/app/evaluation/router.py: GET /evaluate and POST /evaluate/run endpoints
+
+PHASE C: INTEGRATION
+- Register evaluation_router in main.py
+- Add import for evaluation_router
+
+Files modified:
+- backend/app/main.py: Register evaluation router
+
+CONSTRAINTS SATISFIED
+✓ Never cache evaluations — always evaluate against live GCP state
+✓ Only validate against expected_state — never compare fault_configuration
+✓ Apply faults during VM construction — no post-provision mutation
+✓ Iterate through all success_criteria — flexible for multi-resource missions
+✓ Preserve provisioning architecture — only extended, not replaced
+✓ Use existing evaluations table — no migrations required
+
+BACKWARD COMPATIBILITY
+✓ fault_configuration is optional in SuccessCriteria
+✓ Existing missions without faults continue to work
+✓ Provisioning skips faults if fault_config is None
+✓ Evaluation works unchanged on any mission
+
+TESTING
+Manual E2E:
+1. Generate mission with fault → verify fault_configuration in DB
+2. Start challenge → verify VM is broken
+3. Manual repair in GCP Console
+4. POST /evaluate/{session_id}/run → verify score improves
+5. GET /evaluate/{session_id} → verify cached result
+
+Backward compat:
+1. Generate old mission (no faults) → VM healthy
+2. Run evaluation → score 100%
+3. No errors
+
+Files: 10 changed, 550+ lines added, 44 lines removed
