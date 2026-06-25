@@ -91,26 +91,26 @@ export default function AdminChallengesPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-cloud-900">Manage Challenges</h1>
-        <p className="text-lg text-cloud-600 mt-2">Monitor challenge performance and learner engagement</p>
+      <div className="space-y-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">Manage Challenges</h1>
+        <p className="text-orange-600 font-semibold text-base">Monitor challenge performance and learner engagement</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <p className="text-base text-cloud-600 font-medium">Total Challenges</p>
-          <p className="text-4xl font-bold text-primary-600 mt-2">{challenges.length}</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Total Challenges</p>
+          <p className="text-4xl font-semibold text-cloud-900 mt-2">{challenges.length}</p>
         </Card>
         <Card>
-          <p className="text-base text-cloud-600 font-medium">Total Attempts</p>
-          <p className="text-4xl font-bold text-info mt-2">{challenges.reduce((sum, c) => sum + c.attempts, 0)}</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Total Attempts</p>
+          <p className="text-4xl font-semibold text-cloud-900 mt-2">{challenges.reduce((sum, c) => sum + c.attempts, 0)}</p>
         </Card>
         <Card>
-          <p className="text-base text-cloud-600 font-medium">Avg Pass Rate</p>
-          <p className="text-4xl font-bold text-success mt-2">
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Avg Pass Rate</p>
+          <p className="text-4xl font-semibold text-cloud-900 mt-2">
             {Math.round(challenges.reduce((sum, c) => sum + c.passRate, 0) / challenges.length)}%
           </p>
         </Card>

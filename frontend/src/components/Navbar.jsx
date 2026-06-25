@@ -13,12 +13,6 @@ export default function Navbar({ onMenuToggle }) {
     onMenuToggle?.(!isOpen);
   };
 
-  const navLinks = role !== 'admin' ? [
-    { label: 'Dashboard', to: '/dashboard', icon: Home },
-    { label: 'Missions', to: '/challenges', icon: null },
-    { label: 'Progress', to: '/progress', icon: null },
-  ] : [];
-
   return (
     <nav className="bg-white/95 backdrop-blur-sm border-b border-cloud-100 sticky top-0 z-40 shadow-sm">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -38,20 +32,8 @@ export default function Navbar({ onMenuToggle }) {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          {navLinks.length > 0 && (
-            <div className="hidden md:flex items-center gap-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.to}
-                  to={link.to}
-                  className="px-4 py-2 text-sm font-medium text-cloud-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all duration-200"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          )}
+          {/* Spacer */}
+          <div className="flex-1"></div>
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
@@ -89,27 +71,6 @@ export default function Navbar({ onMenuToggle }) {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden pb-4 border-t border-cloud-100 pt-4 space-y-2 animate-slide-down">
-            {navLinks.map((link) => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className="block px-4 py-3 text-sm font-medium text-cloud-700 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-            <button
-              onClick={logout}
-              className="w-full mt-4 px-4 py-3 text-left text-sm font-medium text-error hover:bg-red-50 rounded-lg transition-colors flex items-center gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
-          </div>
-        )}
       </div>
     </nav>
   );

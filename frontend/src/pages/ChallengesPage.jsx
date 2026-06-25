@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { Zap, Cpu, Database, Wifi, Lock, Rocket, Layout, Sprout, BookOpen, Zap as ZapIcon } from 'lucide-react';
 import Card from '../components/ui/Card';
-import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import MissionCard from '../components/ui/MissionCard';
 import api from '../api/mockApi';
 import { learningTracks, difficulties } from '../data/mockData';
+
+const trackIcons = {
+  compute: <Cpu className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  storage: <Database className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  networking: <Wifi className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  security: <Lock className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  devops: <Rocket className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  architecture: <Layout className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+};
+
+const difficultyIcons = {
+  beginner: <Sprout className="w-5 h-5 text-green-500 flex-shrink-0" />,
+  intermediate: <BookOpen className="w-5 h-5 text-amber-500 flex-shrink-0" />,
+  advanced: <ZapIcon className="w-5 h-5 text-red-500 flex-shrink-0" />,
+};
 
 export default function ChallengesPage() {
   const navigate = useNavigate();
@@ -38,32 +52,16 @@ export default function ChallengesPage() {
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Hero Banner */}
-      <div className="relative rounded-3xl overflow-hidden h-64 bg-gradient-to-r from-primary-600 to-sky-600 shadow-lg border border-primary-500/20">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full -mr-48 -mt-48"></div>
-        </div>
-        <div className="relative h-full flex items-center justify-between px-8">
-          <div className="max-w-xl">
-            <Badge variant="primary" size="sm" className="mb-4 bg-white/20 text-white border-white/30">Cloud Missions</Badge>
-            <h2 className="text-4xl font-bold text-white mb-2">Choose Your Mission</h2>
-            <p className="text-white/90 text-lg">Select a track and difficulty level to deploy real cloud scenarios</p>
-          </div>
-          <div className="hidden lg:block text-6xl">🎯</div>
-        </div>
-      </div>
-
       {/* Popular Missions Section */}
       <div>
         <h2 className="text-2xl font-bold text-cloud-900 mb-2">Popular Missions</h2>
-        <p className="text-cloud-600 mb-6">Choose a mission to get started or customize your learning path below</p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <p className="text-orange-600 font-semibold text-base mb-6">Get started or customize your learning path</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {learningTracks.slice(0, 4).map((track) => (
             <MissionCard
               key={track.id}
               icon={track.icon}
               title={track.name}
-              description={track.description}
               difficulty="Intermediate"
               estimatedTime="60-90 min"
               status="available"
@@ -71,34 +69,36 @@ export default function ChallengesPage() {
                 setSelectedTrack(track.id);
                 setSelectedDifficulty('intermediate');
               }}
-              skills={['Cloud', 'DevOps']}
+              compact={true}
             />
           ))}
         </div>
       </div>
 
       {/* Customize Mission Section */}
-      <div className="bg-gradient-to-br from-sky-50 via-white to-primary-50 rounded-3xl p-10 border-2 border-primary-200 shadow-lg">
-        <h2 className="text-2xl font-bold text-cloud-900 mb-8">Customize Your Mission</h2>
+      <div className="rounded-2xl border border-cloud-200 p-6 md:p-8">
+        <h2 className="text-2xl font-bold text-cloud-900 mb-2">Customize Your Mission</h2>
+        <p className="text-orange-600 font-semibold text-base mb-6">Select your learning track and difficulty level</p>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Learning Track Selection */}
           <div>
-            <h3 className="text-lg font-bold text-cloud-900 mb-5">1. Choose Learning Track</h3>
-            <div className="space-y-3">
+            <h3 className="text-base font-bold text-cloud-900 mb-4">Learning Track</h3>
+            <div className="space-y-2">
               {learningTracks.map((track) => (
                 <button
                   key={track.id}
                   onClick={() => setSelectedTrack(track.id)}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
+                  className={`w-full p-3 rounded-lg border transition-all text-left ${
                     selectedTrack === track.id
-                      ? 'border-primary-600 bg-gradient-to-br from-primary-100 to-sky-100 shadow-md'
-                      : 'border-cloud-200 hover:border-primary-400 hover:shadow-md bg-white'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-cloud-200 hover:border-primary-300 bg-white'
                   }`}
                 >
-                  <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{track.icon}</div>
-                  <p className="font-semibold text-cloud-900">{track.name}</p>
-                  <p className="text-xs text-cloud-600 mt-1">{track.description}</p>
+                  <div className="flex items-center gap-3">
+                    {trackIcons[track.id]}
+                    <span className="text-sm font-medium text-cloud-900">{track.name}</span>
+                  </div>
                 </button>
               ))}
             </div>
@@ -106,58 +106,32 @@ export default function ChallengesPage() {
 
           {/* Difficulty Selection & Launch */}
           <div>
-            <h3 className="text-lg font-bold text-cloud-900 mb-5">2. Choose Difficulty</h3>
-            <div className="space-y-3 mb-8">
+            <h3 className="text-base font-bold text-cloud-900 mb-4">Difficulty Level</h3>
+            <div className="space-y-2 mb-6">
               {difficulties.map((difficulty) => (
                 <button
                   key={difficulty.id}
                   onClick={() => setSelectedDifficulty(difficulty.id)}
-                  className={`w-full p-4 rounded-xl border-2 transition-all text-left group ${
+                  className={`w-full p-3 rounded-lg border transition-all text-left ${
                     selectedDifficulty === difficulty.id
-                      ? 'border-primary-600 bg-gradient-to-br from-primary-100 to-sky-100 shadow-md'
-                      : 'border-cloud-200 hover:border-primary-400 hover:shadow-md bg-white'
+                      ? 'border-primary-500 bg-primary-50'
+                      : 'border-cloud-200 hover:border-primary-300 bg-white'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">
-                        {['🌱', '📚', '🚀'][difficulty.level - 1]}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div>
+                        {difficultyIcons[difficulty.id]}
                       </div>
-                      <p className="font-semibold text-cloud-900">{difficulty.name}</p>
-                      <p className="text-xs text-cloud-600 mt-1">
-                        {difficulty.level === 1 ? '30-45 min' : difficulty.level === 2 ? '60-90 min' : '120+ min'}
-                      </p>
+                      <span className="text-sm font-medium text-cloud-900">{difficulty.name}</span>
                     </div>
                     {selectedDifficulty === difficulty.id && (
-                      <Badge variant="primary" size="sm">
-                        ✓
-                      </Badge>
+                      <span className="text-primary-600">✓</span>
                     )}
                   </div>
                 </button>
               ))}
             </div>
-
-            {/* Summary Card */}
-            {selectedTrack && selectedDifficulty && (
-              <Card className="bg-white/90 border-2 border-accent-200 bg-gradient-to-br from-accent-50 to-green-50 mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="text-2xl">✓</div>
-                  <h4 className="font-bold text-accent-900">Ready to Launch!</h4>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <p className="text-cloud-700">
-                    <span className="font-semibold">Track:</span> {learningTracks.find(t => t.id === selectedTrack)?.name}
-                  </p>
-                  <p className="text-cloud-700">
-                    <span className="font-semibold">Level:</span> {difficulties.find(d => d.id === selectedDifficulty)?.name}
-                  </p>
-                  <p className="text-cloud-700">
-                    <span className="font-semibold">Duration:</span> {selectedDifficulty === 'beginner' ? '30-45 min' : selectedDifficulty === 'intermediate' ? '60-90 min' : '120+ min'}
-                  </p>
-                </div>
-              </Card>
-            )}
 
             {/* Launch Button */}
             <Button
@@ -165,16 +139,10 @@ export default function ChallengesPage() {
               size="lg"
               onClick={() => setShowGeneratingModal(true)}
               disabled={!isFormValid}
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full"
             >
-              <Zap className="w-5 h-5" />
               {isFormValid ? 'Launch Mission' : 'Select Track & Difficulty'}
             </Button>
-
-            {/* Info Box */}
-            <div className="mt-4 p-4 rounded-lg bg-sky-100/60 border border-sky-200 text-xs text-sky-900">
-              💡 Our AI will generate a unique cloud scenario personalized to your selections. This typically takes 30-60 seconds.
-            </div>
           </div>
         </div>
       </div>

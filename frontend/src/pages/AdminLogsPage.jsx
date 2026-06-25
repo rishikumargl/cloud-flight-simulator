@@ -44,11 +44,11 @@ export default function AdminLogsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-bold text-cloud-900">Logs & Audit Trail</h1>
-        <p className="text-lg text-cloud-600 mt-2">Monitor system events and user activities</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">Logs <h1 className="text-4xl font-bold text-cloud-900">Logs & Audit Trail</h1> Audit Trail</h1>
+        <p className="text-orange-600 font-semibold text-base">Monitor system events and user activities</p>
       </div>
 
       {/* Summary Cards */}

@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Zap } from 'lucide-react';
-import Card from '../components/ui/Card';
+import { Zap, TrendingUp, Award, Flame, Target, ChevronRight, CheckCircle2, Rocket, Trophy } from 'lucide-react';
 import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
+import Modal from '../components/ui/Modal';
 import LoadingSkeleton from '../components/ui/LoadingSkeleton';
 import MissionCard from '../components/ui/MissionCard';
 import api from '../api/mockApi';
-import { learningTracks } from '../data/mockData';
+
+const getActivityIcon = (emojiIcon) => {
+  switch (emojiIcon) {
+    case '✅':
+      return <CheckCircle2 className="w-6 h-6 text-green-500 flex-shrink-0" />;
+    case '🚀':
+      return <Rocket className="w-6 h-6 text-orange-500 flex-shrink-0" />;
+    case '🏆':
+      return <Trophy className="w-6 h-6 text-yellow-500 flex-shrink-0" />;
+    default:
+      return <span className="text-2xl">{emojiIcon}</span>;
+  }
+};
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showGeneratingModal, setShowGeneratingModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -31,179 +44,207 @@ export default function DashboardPage() {
     loadData();
   }, []);
 
+  const handleTrendingMissionClick = async (missionRoute) => {
+    setShowGeneratingModal(true);
+    setIsGenerating(true);
+    try {
+      await api.startChallenge(1);
+      await new Promise((r) => setTimeout(r, 2000));
+      navigate(missionRoute);
+    } finally {
+      setIsGenerating(false);
+      setShowGeneratingModal(false);
+    }
+  };
+
   if (loading) {
     return <LoadingSkeleton count={4} type="card" />;
   }
 
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Featured Mission Banner */}
-      <div className="relative rounded-3xl overflow-hidden h-72 bg-gradient-to-r from-primary-600 to-sky-600 shadow-lg border border-primary-500/20">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full -mr-48 -mt-48"></div>
-        </div>
-        <div className="relative h-full flex items-center justify-between px-8">
-          <div className="max-w-2xl">
-            <Badge variant="primary" size="sm" className="mb-4 bg-white/20 text-white border-white/30">Featured Mission</Badge>
-            <h2 className="text-4xl font-bold text-white mb-3">Cloud Architecture Mastery</h2>
-            <p className="text-white/90 text-lg mb-8">Design and deploy scalable cloud infrastructure. Complete real-world scenarios and earn your architecture badge.</p>
-            <Button variant="secondary" size="lg" onClick={() => navigate('/challenges')} className="gap-2">
-              <Zap className="w-5 h-5" />
-              Start Mission
-            </Button>
-          </div>
-          <div className="hidden lg:block text-7xl">🏗️</div>
-        </div>
-      </div>
-
-      {/* Welcome Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <Card>
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-2xl font-bold text-cloud-900 mb-2">Welcome back, Cloud Engineer</h2>
-                <p className="text-cloud-600 text-lg">Continue your cloud learning journey. Your next mission awaits.</p>
-              </div>
-              <div className="text-5xl">👋</div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Stats Card */}
-        <Card className="bg-gradient-to-br from-accent-50 to-green-50 border-2 border-accent-200">
-          <div className="flex items-start justify-between mb-4">
-            <h3 className="text-sm font-bold text-accent-900 uppercase tracking-wide">Your Progress</h3>
-            <div className="text-2xl">🎖️</div>
-          </div>
-          <div className="space-y-3">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-cloud-700">Missions Completed</span>
-                <span className="text-lg font-bold text-accent-600">{stats?.totalChallengesCompleted}</span>
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-cloud-700">Success Rate</span>
-                <span className="text-lg font-bold text-accent-600">{stats?.successRate.toFixed(0)}%</span>
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium text-cloud-700">Current Level</span>
-                <span className="text-lg font-bold text-accent-600">{stats?.currentSkillLevel}</span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card hoverable className="group">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-2">Missions Completed</p>
-              <p className="text-3xl font-bold text-cloud-900">{stats?.totalChallengesCompleted}</p>
-              <p className="text-xs text-accent-600 font-medium mt-2">+2 this week</p>
-            </div>
-            <div className="text-3xl group-hover:scale-110 transition-transform">🎖️</div>
-          </div>
-        </Card>
-
-        <Card hoverable className="group">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-2">Success Rate</p>
-              <p className="text-3xl font-bold text-cloud-900">{stats?.successRate.toFixed(0)}%</p>
-              <p className="text-xs text-accent-600 font-medium mt-2">↑ 5% this month</p>
-            </div>
-            <div className="text-3xl group-hover:scale-110 transition-transform">📈</div>
-          </div>
-        </Card>
-
-        <Card hoverable className="group">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-2">Skill Level</p>
-              <p className="text-3xl font-bold text-cloud-900">{stats?.currentSkillLevel}</p>
-              <p className="text-xs text-amber-600 font-medium mt-2">Intermediate Pilot</p>
-            </div>
-            <div className="text-3xl group-hover:scale-110 transition-transform">⭐</div>
-          </div>
-        </Card>
-
-        <Card hoverable className="group">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-2">Learning Streak</p>
-              <p className="text-3xl font-bold text-cloud-900">12</p>
-              <p className="text-xs text-orange-600 font-medium mt-2">days active</p>
-            </div>
-            <div className="text-3xl group-hover:scale-110 transition-transform">🔥</div>
-          </div>
-        </Card>
-      </div>
-
-      {/* Available Missions */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-cloud-900">Trending Missions</h2>
-            <p className="text-cloud-600 mt-1">Popular missions to advance your cloud skills</p>
-          </div>
+      {/* Welcome Section - Centered */}
+      <div className="space-y-4 text-center">
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">Welcome back, Cloud Engineer 👋</h1>
+        <p className="text-orange-600 font-semibold text-base mb-2">Continue your learning journey</p>
+        <p className="text-base text-cloud-700 leading-relaxed">Master cloud engineering through AI-powered challenges and personalized scenarios.</p>
+        <div className="flex justify-center">
           <Button
-            variant="ghost"
-            size="sm"
             onClick={() => navigate('/challenges')}
-            className="flex items-center gap-2"
+            variant="primary"
+            size="lg"
+            className="gap-2 px-8"
           >
-            View All
-            <ArrowRight className="w-4 h-4" />
+            <Zap className="w-5 h-5" />
+            Start Mission
           </Button>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {learningTracks.slice(0, 3).map((track) => (
-            <MissionCard
-              key={track.id}
-              icon={track.icon}
-              title={track.name}
-              description={track.description}
-              difficulty="Intermediate"
-              estimatedTime="60-90 min"
-              status="available"
-              onClick={() => navigate('/challenges')}
-              skills={['Cloud', 'DevOps']}
-            />
-          ))}
+      {/* Performance Stats - Interactive Stat Boxes */}
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-cloud-900">Your Performance</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Completed Challenges */}
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <Award className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-orange-600">+2</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Challenges</p>
+            <p className="text-2xl font-semibold text-cloud-900">{stats?.totalChallengesCompleted}</p>
+          </div>
+
+          {/* Success Rate */}
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <TrendingUp className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-primary-600">↑5%</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Success Rate</p>
+            <p className="text-2xl font-semibold text-cloud-900">{stats?.successRate.toFixed(0)}%</p>
+            {/* Progress Bar */}
+            <div className="mt-2 w-full bg-primary-200/30 rounded-full h-1.5">
+              <div
+                className="bg-primary-500 h-1.5 rounded-full transition-all duration-500"
+                style={{ width: `${stats?.successRate}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Skill Level */}
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <Target className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-orange-600">Next</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Skill Level</p>
+            <p className="text-2xl font-semibold text-cloud-900">{stats?.currentSkillLevel}</p>
+          </div>
+
+          {/* Learning Streak */}
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <Flame className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-orange-600">🔥</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Streak</p>
+            <p className="text-2xl font-bold text-cloud-900">12</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Trending Missions */}
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-cloud-900">Trending Missions</h3>
+        <p className="text-sm text-orange-600 font-semibold">Explore popular challenges</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MissionCard
+            icon="⚙️"
+            title="Compute Basics"
+            description="Get started with Cloud Compute Engine"
+            difficulty="beginner"
+            estimatedTime="45 min"
+            status="available"
+            onClick={() => handleTrendingMissionClick('/mission/new?track=compute&difficulty=beginner')}
+          />
+
+          <MissionCard
+            icon="💾"
+            title="Storage Solutions"
+            description="Master cloud storage configurations"
+            difficulty="intermediate"
+            estimatedTime="60 min"
+            status="available"
+            onClick={() => handleTrendingMissionClick('/mission/new?track=storage&difficulty=intermediate')}
+          />
+
+          <MissionCard
+            icon="🌐"
+            title="Network Design"
+            description="Build scalable network architecture"
+            difficulty="advanced"
+            estimatedTime="90 min"
+            status="available"
+            onClick={() => handleTrendingMissionClick('/mission/new?track=networking&difficulty=advanced')}
+          />
+
+          <MissionCard
+            icon="🔒"
+            title="Security Best Practices"
+            description="Learn cloud security implementation"
+            difficulty="intermediate"
+            estimatedTime="60 min"
+            status="available"
+            onClick={() => handleTrendingMissionClick('/mission/new?track=security&difficulty=intermediate')}
+          />
         </div>
       </div>
 
       {/* Recent Activity */}
-      <div>
-        <h2 className="text-2xl font-bold text-cloud-900 mb-6">Recent Activity</h2>
-        <Card>
-          <div className="space-y-4">
-            {activities?.map((activity) => (
+      <div className="space-y-4">
+        <h3 className="text-xl font-semibold text-cloud-900">Recent Activity</h3>
+        <p className="text-sm text-orange-600 font-semibold">Your mission history</p>
+        <div className="space-y-3">
+          {activities && activities.length > 0 ? (
+            activities.map((activity) => (
               <div
                 key={activity.id}
-                className="group flex items-start gap-4 p-4 rounded-xl hover:bg-cloud-50 transition-colors border border-transparent hover:border-cloud-200"
+                className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300"
               >
-                <div className="text-2xl flex-shrink-0">{activity.icon}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-cloud-900 group-hover:text-primary-600 transition-colors">
-                    {activity.title}
-                  </p>
-                  <p className="text-sm text-cloud-600 mt-1">{activity.description}</p>
-                  <p className="text-xs text-cloud-500 mt-2">{activity.timestamp}</p>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="mt-1">
+                      {getActivityIcon(activity.icon)}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-cloud-900">{activity.title}</p>
+                      <div className="flex items-center gap-4 mt-1">
+                        <p className="text-sm text-cloud-600">{activity.description}</p>
+                        <p className="text-xs text-cloud-500">{activity.timestamp}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => navigate('/history')}
+                    className="flex items-center gap-1 px-3 py-2 rounded-lg text-primary-600 hover:bg-primary-50 transition-colors group"
+                  >
+                    <span className="text-sm font-semibold">Details</span>
+                    <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        </Card>
+            ))
+          ) : (
+            <div className="p-4 rounded-lg bg-white border border-cloud-100 text-center">
+              <p className="text-cloud-600">No recent activities yet. Start a mission to get started!</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Generating Modal */}
+      <Modal
+        isOpen={showGeneratingModal}
+        onClose={() => !isGenerating && setShowGeneratingModal(false)}
+        title="Generating Your Mission..."
+        size="md"
+      >
+        <div className="text-center py-8 space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full animate-pulse">
+            <span className="text-3xl">⚡</span>
+          </div>
+          <p className="text-cloud-700 font-medium">AI is crafting your unique mission...</p>
+          <div className="space-y-2 text-sm text-cloud-600">
+            <p>✓ Analyzing your skill level</p>
+            <p>✓ Generating realistic scenario</p>
+            <p>✓ Provisioning cloud environment</p>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

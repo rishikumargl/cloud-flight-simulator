@@ -3,6 +3,7 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/ui/LoadingSkeleton';
+import { Users, TrendingUp, Target } from 'lucide-react';
 
 export default function AdminLearnersPage() {
   const [learners, setLearners] = useState(null);
@@ -48,73 +49,97 @@ export default function AdminLearnersPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-4xl font-bold text-cloud-900">Manage Learners</h1>
-        <p className="text-lg text-cloud-600 mt-2">Monitor and manage all registered learners</p>
+      <div className="space-y-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">Manage Learners</h1>
+        <p className="text-orange-600 font-semibold text-base">Monitor and manage all registered learners</p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <p className="text-base text-cloud-600 font-medium">Total Learners</p>
-          <p className="text-4xl font-bold text-primary-600 mt-2">{learners.length}</p>
-        </Card>
-        <Card>
-          <p className="text-base text-cloud-600 font-medium">Active Now</p>
-          <p className="text-4xl font-bold text-success mt-2">{learners.filter((l) => l.status === 'active').length}</p>
-        </Card>
-        <Card>
-          <p className="text-base text-cloud-600 font-medium">Avg Success Rate</p>
-          <p className="text-4xl font-bold text-info mt-2">
-            {Math.round(learners.reduce((sum, l) => sum + l.successRate, 0) / learners.length)}%
-          </p>
-        </Card>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-cloud-900">Learner Statistics</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <Users className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-orange-600">Total</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Total Learners</p>
+            <p className="text-2xl font-semibold text-cloud-900">{learners.length}</p>
+          </div>
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <TrendingUp className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-orange-600">Active</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Active Now</p>
+            <p className="text-2xl font-semibold text-cloud-900">{learners.filter((l) => l.status === 'active').length}</p>
+          </div>
+          <div className="p-4 rounded-lg bg-white border border-cloud-100 hover:border-primary-300/50 hover:shadow-sm transition-all duration-300">
+            <div className="flex items-start justify-between mb-3">
+              <Target className="w-5 h-5 text-orange-500 flex-shrink-0" />
+              <span className="text-xs font-semibold text-orange-600">Avg</span>
+            </div>
+            <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide mb-1">Success Rate</p>
+            <p className="text-2xl font-semibold text-cloud-900">
+              {Math.round(learners.reduce((sum, l) => sum + l.successRate, 0) / learners.length)}%
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Learners Table */}
-      <Card>
-        <h2 className="text-2xl font-bold text-cloud-900 mb-6">All Learners</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-base">
-            <thead>
-              <tr className="border-b-2 border-cloud-200">
-                <th className="text-left py-4 px-4 text-lg font-bold text-cloud-900">Name</th>
-                <th className="text-left py-4 px-4 text-lg font-bold text-cloud-900">Email</th>
-                <th className="text-center py-4 px-4 text-lg font-bold text-cloud-900">Status</th>
-                <th className="text-center py-4 px-4 text-lg font-bold text-cloud-900">Level</th>
-                <th className="text-center py-4 px-4 text-lg font-bold text-cloud-900">Challenges</th>
-                <th className="text-center py-4 px-4 text-lg font-bold text-cloud-900">Success Rate</th>
-                <th className="text-center py-4 px-4 text-lg font-bold text-cloud-900">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {learners.map((learner) => (
-                <tr key={learner.id} className="border-b border-cloud-100 hover:bg-cloud-50 transition">
-                  <td className="py-4 px-4 text-base font-medium text-cloud-900">{learner.name}</td>
-                  <td className="py-4 px-4 text-base text-cloud-600">{learner.email}</td>
-                  <td className="py-4 px-4 text-center">
-                    <Badge variant={getStatusColor(learner.status)}>
-                      {learner.status.charAt(0).toUpperCase() + learner.status.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="py-4 px-4 text-center">
-                    <Badge variant={getLevelColor(learner.level)}>{learner.level}</Badge>
-                  </td>
-                  <td className="py-4 px-4 text-center text-base font-bold text-cloud-900">{learner.completedChallenges}</td>
-                  <td className="py-4 px-4 text-center text-base font-bold text-info">{learner.successRate}%</td>
-                  <td className="py-4 px-4 text-center">
-                    <Button variant="ghost" size="sm">
-                      View Details
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-cloud-900">All Learners</h3>
         </div>
-      </Card>
+
+        <Card>
+          <h2 className="text-base font-semibold text-cloud-900 mb-6">Learner Details</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-base">
+              <thead>
+                <tr className="border-b-2 border-cloud-200">
+                  <th className="text-left py-4 px-4 text-base font-semibold text-cloud-900">Name</th>
+                  <th className="text-left py-4 px-4 text-base font-semibold text-cloud-900">Email</th>
+                  <th className="text-center py-4 px-4 text-base font-semibold text-cloud-900">Status</th>
+                  <th className="text-center py-4 px-4 text-base font-semibold text-cloud-900">Level</th>
+                  <th className="text-center py-4 px-4 text-base font-semibold text-cloud-900">Challenges</th>
+                  <th className="text-center py-4 px-4 text-base font-semibold text-cloud-900">Success Rate</th>
+                  <th className="text-center py-4 px-4 text-base font-semibold text-cloud-900">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {learners.map((learner) => (
+                  <tr key={learner.id} className="border-b border-cloud-100 hover:bg-cloud-50 transition">
+                    <td className="py-4 px-4 text-base font-medium text-cloud-900">{learner.name}</td>
+                    <td className="py-4 px-4 text-base text-cloud-600">{learner.email}</td>
+                    <td className="py-4 px-4 text-center">
+                      <Badge variant={getStatusColor(learner.status)}>
+                        {learner.status.charAt(0).toUpperCase() + learner.status.slice(1)}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <Badge variant={getLevelColor(learner.level)}>{learner.level}</Badge>
+                    </td>
+                    <td className="py-4 px-4 text-center text-base font-semibold text-cloud-900">{learner.completedChallenges}</td>
+                    <td className="py-4 px-4 text-center text-base font-semibold text-cloud-900">{learner.successRate}%</td>
+                    <td className="py-4 px-4 text-center">
+                      <Button variant="ghost" size="sm">
+                        View Details
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

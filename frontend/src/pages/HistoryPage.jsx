@@ -1,10 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Cpu, Database, Wifi, Lock, Rocket, Layout } from 'lucide-react';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import LoadingSkeleton from '../components/ui/LoadingSkeleton';
 import api from '../api/mockApi';
+
+const trackIcons = {
+  compute: <Cpu className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  storage: <Database className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  networking: <Wifi className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  security: <Lock className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  devops: <Rocket className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  architecture: <Layout className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+};
+
+const difficultyIcons = {
+  beginner: '🌱',
+  intermediate: '📚',
+  advanced: '🚀',
+};
 
 export default function HistoryPage() {
   const navigate = useNavigate();
@@ -41,19 +57,6 @@ export default function HistoryPage() {
     }
   };
 
-  const getDifficultyIcon = (difficulty) => {
-    switch (difficulty) {
-      case 'beginner':
-        return '🌱';
-      case 'intermediate':
-        return '📚';
-      case 'advanced':
-        return '🚀';
-      default:
-        return '📖';
-    }
-  };
-
   const getScoreColor = (score) => {
     if (score >= 90) return 'text-success';
     if (score >= 80) return 'text-info';
@@ -64,32 +67,30 @@ export default function HistoryPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-cloud-900">Mission History</h1>
-        <p className="text-cloud-600 mt-1">
-          View all your completed and attempted challenges
-        </p>
+      <div className="space-y-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">Mission History</h1>
+        <p className="text-orange-600 font-semibold text-base">Review your completed challenges</p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
-          <p className="text-sm text-cloud-600">Total Challenges</p>
-          <p className="text-3xl font-bold text-cloud-900 mt-2">{history?.length || 0}</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Total Challenges</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">{history?.length || 0}</p>
         </Card>
         <Card>
-          <p className="text-sm text-cloud-600">Average Score</p>
-          <p className="text-3xl font-bold text-primary-600 mt-2">
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Average Score</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">
             {history ? Math.round(history.reduce((sum, h) => sum + h.score, 0) / history.length) : 0}
           </p>
         </Card>
         <Card>
-          <p className="text-sm text-cloud-600">Completion Rate</p>
-          <p className="text-3xl font-bold text-success mt-2">100%</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Completion Rate</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">100%</p>
         </Card>
         <Card>
-          <p className="text-sm text-cloud-600">Total Hours</p>
-          <p className="text-3xl font-bold text-warning mt-2">
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Total Hours</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">
             {history ? (history.length * 1.5).toFixed(1) : 0}
           </p>
         </Card>
@@ -97,7 +98,7 @@ export default function HistoryPage() {
 
       {/* Mission History Table */}
       <Card>
-        <h2 className="text-xl font-bold text-cloud-900 mb-6">All Missions</h2>
+        <h2 className="text-2xl font-bold text-cloud-900 mb-6">All Missions</h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -116,20 +117,27 @@ export default function HistoryPage() {
                   <td className="py-4 px-4">
                     <div>
                       <p className="font-medium text-cloud-900">{mission.title}</p>
-                      <p className="text-sm text-cloud-600 mt-1">
-                        {getDifficultyIcon(mission.difficulty)}
-                      </p>
+                      <div className="flex items-center gap-1 text-sm text-cloud-600 mt-1">
+                        <span>{difficultyIcons[mission.difficulty]}</span>
+                        <span>{mission.difficulty.charAt(0).toUpperCase() + mission.difficulty.slice(1)}</span>
+                      </div>
                     </div>
                   </td>
                   <td className="py-4 px-4 text-center">
-                    <Badge variant="primary">
-                      {mission.track.charAt(0).toUpperCase() + mission.track.slice(1)}
-                    </Badge>
+                    <div className="flex items-center justify-center gap-2">
+                      {trackIcons[mission.track]}
+                      <span className="text-sm font-medium text-cloud-900">
+                        {mission.track.charAt(0).toUpperCase() + mission.track.slice(1)}
+                      </span>
+                    </div>
                   </td>
                   <td className="py-4 px-4 text-center">
-                    <Badge variant={mission.difficulty === 'beginner' ? 'success' : mission.difficulty === 'intermediate' ? 'warning' : 'error'}>
-                      {mission.difficulty.charAt(0).toUpperCase() + mission.difficulty.slice(1)}
-                    </Badge>
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-lg">{difficultyIcons[mission.difficulty]}</span>
+                      <span className="text-sm font-medium text-cloud-900">
+                        {mission.difficulty.charAt(0).toUpperCase() + mission.difficulty.slice(1)}
+                      </span>
+                    </div>
                   </td>
                   <td className={`py-4 px-4 text-center font-bold text-lg ${getScoreColor(mission.score)}`}>
                     {mission.score}
@@ -155,7 +163,7 @@ export default function HistoryPage() {
 
       {/* Performance by Track */}
       <Card>
-        <h2 className="text-xl font-bold text-cloud-900 mb-6">Performance by Track</h2>
+        <h2 className="text-2xl font-bold text-cloud-900 mb-6">Performance by Track</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {['Compute', 'Storage', 'Networking', 'Security'].map((track) => {
             const trackMissions = history?.filter(
@@ -169,12 +177,13 @@ export default function HistoryPage() {
             return (
               <div key={track} className="p-4 border border-cloud-200 rounded-lg">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-bold text-cloud-900">{track}</h3>
+                  <h3 className="font-semibold text-cloud-900">{track}</h3>
                   <Badge variant="primary">{trackMissions.length} completed</Badge>
                 </div>
+                <p className="text-xs text-orange-600 font-semibold mb-3">Your performance</p>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm text-cloud-600">Avg Score</p>
-                  <p className={`text-2xl font-bold ${getScoreColor(avgScore)}`}>{avgScore}%</p>
+                  <p className="text-sm text-cloud-700">Avg Score</p>
+                  <p className="text-2xl font-semibold text-cloud-900">{avgScore}%</p>
                 </div>
               </div>
             );

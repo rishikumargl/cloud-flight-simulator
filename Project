@@ -1,0 +1,85 @@
+Capstone Challenge: Cloud Flight Simulator
+Problem Statement
+Cloud learning platforms today rely heavily on static labs where every learner performs the same tasks regardless of their experience level, strengths, or learning progress. This results in repetitive learning experiences, poor engagement, and limited assessment of real-world problem-solving abilities.
+Your team has been tasked with building Cloud Flight Simulator, an AI-powered platform that generates dynamic cloud challenges based on a learner's selected domain, skill level, and performance history.
+Instead of presenting predefined instructions, the platform should create realistic cloud scenarios, provision a temporary Google Cloud environment, monitor learner actions, assess progress automatically, and adapt subsequent challenges based on performance.
+The objective is to create a personalized cloud learning experience where every learner receives unique scenarios and is evaluated based on actual cloud activity rather than manual submissions.
+
+User Journey
+A learner selects:
+Learning Track (Compute, Storage, Networking, Security, DevOps, Architecture)
+Difficulty Level (Beginner, Intermediate, Advanced)
+Based on the selection, the platform generates a unique cloud mission and provisions a temporary Google Cloud environment.
+As the learner performs actions within the cloud environment, the system continuously evaluates resource creation, configurations, and task completion.
+Upon successful completion, the platform generates a score, provides feedback, and recommends or creates the next challenge based on learner performance.
+
+Deliverables
+1. Learner Portal
+A web application where learners can:
+Register and login
+Select cloud domain and difficulty level
+Launch challenges
+View progress and scores
+Review completed missions
+
+2. Dynamic Scenario Generator
+An AI-powered engine that generates cloud missions based on:
+Selected learning track
+Difficulty level
+Previous performance
+Completed challenges
+Every mission should contain:
+Business context
+Objectives
+Success criteria
+Time limit
+
+3. Temporary Cloud Environment
+The platform should provision a temporary Google Cloud environment for each challenge and automatically remove resources after challenge completion or timeout.
+
+4. Automated Evaluation Engine
+The platform should evaluate learner actions by inspecting actual cloud resources and configurations.
+Evaluation must be based on the state of cloud resources rather than manual submissions.
+
+5. AI Feedback and Recommendation Engine
+The system should:
+Provide intelligent feedback
+Highlight mistakes
+Suggest improvements
+Recommend the next challenge
+
+6. Progress and Performance Dashboard
+Learners should be able to view:
+Completed challenges
+Scores
+Success rate
+Learning progression
+Skill growth over time
+
+7. Observability and Tracing
+All AI-generated scenarios, evaluations, recommendations, and decision-making workflows must be traceable using LangSmith.
+The platform should capture:
+Scenario generation traces
+Evaluation traces
+Feedback generation traces
+Recommendation traces
+
+8. Audit and Activity Tracking
+The platform should maintain a complete record of:
+Learner actions
+Cloud resource changes
+Mission attempts
+Evaluation outcomes
+AI-generated decisions
+
+Mandatory Features
+Authentication and authorization
+Dynamic scenario generation
+Google Cloud integration
+Temporary environment provisioning
+Automated challenge validation
+AI-powered evaluation
+AI-powered recommendations
+LangSmith tracing
+Audit logging
+Progress dashboard

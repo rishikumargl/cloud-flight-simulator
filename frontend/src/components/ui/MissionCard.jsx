@@ -1,5 +1,13 @@
-import { Clock, CheckCircle2, Zap, ArrowRight } from 'lucide-react';
+import { Clock, CheckCircle2, Zap, ArrowRight, Cpu, Database, Wifi, Lock } from 'lucide-react';
 import Button from './Button';
+
+const emojiToIconMap = {
+  '⚙️': <Cpu className="w-10 h-10 text-orange-500" />,
+  '💾': <Database className="w-10 h-10 text-orange-500" />,
+  '🌐': <Wifi className="w-10 h-10 text-orange-500" />,
+  '🔒': <Lock className="w-10 h-10 text-orange-500" />,
+  '⚡': <Zap className="w-10 h-10 text-orange-500" />,
+};
 
 export default function MissionCard({
   icon = '🚀',
@@ -12,6 +20,7 @@ export default function MissionCard({
   className = '',
   skills = [],
   tags = [],
+  compact = false,
 }) {
   const difficultyColors = {
     beginner: 'bg-green-50 border-green-200 text-green-700',
@@ -34,23 +43,27 @@ export default function MissionCard({
   return (
     <button
       onClick={onClick}
-      className={`group relative w-full text-left bg-white rounded-2xl border-2 p-6 transition-all duration-300 ${statusColors[status]} ${className}`}
+      className={`group relative w-full text-left bg-white rounded-2xl border-2 ${compact ? 'p-4' : 'p-6'} transition-all duration-300 ${statusColors[status]} ${className}`}
     >
       {/* Status Indicator */}
-      <div className="absolute top-4 right-4">
-        {statusIcons[status]}
-      </div>
+      {!compact && (
+        <div className="absolute top-4 right-4">
+          {statusIcons[status]}
+        </div>
+      )}
 
       {/* Icon & Title Section */}
-      <div className="mb-4">
-        <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{icon}</div>
-        <h3 className="text-lg font-bold text-cloud-900 group-hover:text-primary-600 transition-colors">
+      <div className={compact ? 'mb-2' : 'mb-4'}>
+        <div className={`${compact ? 'mb-2' : 'mb-3'} group-hover:scale-110 transition-transform inline-block`}>
+          {emojiToIconMap[icon] || <span className={compact ? 'text-3xl' : 'text-4xl'}>{icon}</span>}
+        </div>
+        <h3 className={`${compact ? 'text-base' : 'text-lg'} font-bold text-cloud-900 group-hover:text-primary-600 transition-colors`}>
           {title}
         </h3>
       </div>
 
       {/* Description */}
-      {description && (
+      {!compact && description && (
         <p className="text-sm text-cloud-600 mb-4 line-clamp-2">
           {description}
         </p>
@@ -83,8 +96,8 @@ export default function MissionCard({
         </div>
 
         {/* Time Estimate */}
-        <div className="flex items-center gap-1 text-sm text-cloud-600">
-          <Clock className="w-4 h-4" />
+        <div className="flex items-center gap-2 text-sm text-cloud-600">
+          <Clock className="w-5 h-5 text-orange-500 flex-shrink-0" />
           <span>{estimatedTime}</span>
         </div>
       </div>

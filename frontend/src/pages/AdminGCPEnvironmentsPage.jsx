@@ -94,10 +94,10 @@ export default function AdminGCPEnvironmentsPage() {
   const totalCost = environments.reduce((sum, e) => sum + parseFloat(e.cost.slice(1)), 0);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fade-in">
       <div>
-        <h1 className="text-4xl font-bold text-cloud-900">GCP Environment Management</h1>
-        <p className="text-lg text-cloud-600 mt-2">Provision, monitor, and manage temporary cloud environments</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">GCP Environment Management</h1>
+        <p className="text-orange-600 font-semibold text-base">Provision, monitor, and manage temporary cloud environments</p>
       </div>
 
       {/* Summary Stats */}

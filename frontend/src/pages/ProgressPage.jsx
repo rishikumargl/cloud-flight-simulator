@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'react';
+import { Cpu, Database, Wifi, Lock, Rocket, Layout } from 'lucide-react';
 import Card from '../components/ui/Card';
 import LoadingSkeleton from '../components/ui/LoadingSkeleton';
 import api from '../api/mockApi';
+
+const trackIcons = {
+  compute: <Cpu className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  storage: <Database className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  networking: <Wifi className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  security: <Lock className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  devops: <Rocket className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+  architecture: <Layout className="w-5 h-5 text-orange-500 flex-shrink-0" />,
+};
 import {
   LineChart,
   Line,
@@ -48,27 +58,27 @@ export default function ProgressPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-cloud-900">Learning Progress</h1>
-        <p className="text-cloud-600 mt-1">Track your learning journey and skill development</p>
+      <div className="space-y-3">
+        <h1 className="text-3xl md:text-4xl font-bold text-cloud-900">Learning Progress</h1>
+        <p className="text-orange-600 font-semibold text-base">Track your growth and achievements</p>
       </div>
 
       {/* Progress Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
-          <p className="text-sm text-cloud-600">Challenges Completed</p>
-          <p className="text-3xl font-bold text-primary-600 mt-2">8</p>
-          <p className="text-xs text-cloud-500 mt-2">+2 this month</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Challenges Completed</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">8</p>
+          <p className="text-xs text-cloud-600 mt-2">+2 this month</p>
         </Card>
         <Card>
-          <p className="text-sm text-cloud-600">Success Rate</p>
-          <p className="text-3xl font-bold text-success mt-2">92%</p>
-          <p className="text-xs text-cloud-500 mt-2">↑ 7% improvement</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Success Rate</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">92%</p>
+          <p className="text-xs text-cloud-600 mt-2">↑ 7% improvement</p>
         </Card>
         <Card>
-          <p className="text-sm text-cloud-600">Learning Streak</p>
-          <p className="text-3xl font-bold text-warning mt-2">12 days</p>
-          <p className="text-xs text-cloud-500 mt-2">Keep it up!</p>
+          <p className="text-xs font-semibold text-cloud-500 uppercase tracking-wide">Learning Streak</p>
+          <p className="text-3xl font-semibold text-cloud-900 mt-2">12 days</p>
+          <p className="text-xs text-cloud-600 mt-2">Keep it up!</p>
         </Card>
       </div>
 
@@ -80,8 +90,8 @@ export default function ProgressPage() {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={data?.progressTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" />
-              <YAxis />
+              <XAxis dataKey="month" tick={{ fill: '#374151', fontSize: 12 }} />
+              <YAxis tick={{ fill: '#374151', fontSize: 12 }} />
               <Tooltip />
               <Legend />
               <Bar dataKey="completed" fill="#3b82f6" name="Completed" />
@@ -97,8 +107,8 @@ export default function ProgressPage() {
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={data?.successRateTrend}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="month" />
-              <YAxis domain={[0, 100]} />
+              <XAxis dataKey="month" tick={{ fill: '#374151', fontSize: 12 }} />
+              <YAxis domain={[0, 100]} tick={{ fill: '#374151', fontSize: 12 }} />
               <Tooltip formatter={(value) => `${value}%`} />
               <Line
                 type="monotone"
@@ -142,8 +152,8 @@ export default function ProgressPage() {
             {data?.skillGrowth.map((skill) => (
               <div key={skill.skill}>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-cloud-700">{skill.skill}</span>
-                  <span className="text-sm font-bold text-primary-600">{skill.current}%</span>
+                  <span className="text-sm font-medium text-cloud-900">{skill.skill}</span>
+                  <span className="text-sm font-bold text-cloud-900">{skill.current}%</span>
                 </div>
                 <div className="w-full bg-cloud-200 rounded-full h-2">
                   <div
@@ -151,7 +161,7 @@ export default function ProgressPage() {
                     style={{ width: `${skill.current}%` }}
                   ></div>
                 </div>
-                <p className="text-xs text-cloud-500 mt-1">
+                <p className="text-xs text-cloud-600 mt-1">
                   Previous: {skill.previous}% (↑ {skill.current - skill.previous}%)
                 </p>
               </div>
@@ -175,16 +185,21 @@ export default function ProgressPage() {
             </thead>
             <tbody>
               {[
-                { track: 'Compute', completed: 2, avgScore: 88, difficulty: 'Intermediate' },
-                { track: 'Storage', completed: 1, avgScore: 87, difficulty: 'Beginner' },
-                { track: 'Networking', completed: 3, avgScore: 92, difficulty: 'Advanced' },
-                { track: 'Security', completed: 1, avgScore: 91, difficulty: 'Intermediate' },
-                { track: 'DevOps', completed: 1, avgScore: 85, difficulty: 'Intermediate' },
+                { trackId: 'compute', track: 'Compute', completed: 2, avgScore: 88, difficulty: 'Intermediate' },
+                { trackId: 'storage', track: 'Storage', completed: 1, avgScore: 87, difficulty: 'Beginner' },
+                { trackId: 'networking', track: 'Networking', completed: 3, avgScore: 92, difficulty: 'Advanced' },
+                { trackId: 'security', track: 'Security', completed: 1, avgScore: 91, difficulty: 'Intermediate' },
+                { trackId: 'devops', track: 'DevOps', completed: 1, avgScore: 85, difficulty: 'Intermediate' },
               ].map((row) => (
                 <tr key={row.track} className="border-b border-cloud-100">
-                  <td className="py-3 px-4 text-cloud-900">{row.track}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-2">
+                      {trackIcons[row.trackId]}
+                      <span className="text-cloud-900">{row.track}</span>
+                    </div>
+                  </td>
                   <td className="text-center py-3 px-4 text-cloud-700">{row.completed}</td>
-                  <td className="text-center py-3 px-4 font-bold text-primary-600">{row.avgScore}%</td>
+                  <td className="text-center py-3 px-4 font-semibold text-cloud-900">{row.avgScore}%</td>
                   <td className="text-center py-3 px-4 text-cloud-700">{row.difficulty}</td>
                 </tr>
               ))}
