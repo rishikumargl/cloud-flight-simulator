@@ -4,6 +4,7 @@ from sqlalchemy import text
 from app.auth.router import router as auth_router
 from app.challenges.router import router as challenges_router
 from app.scenarios.router import router as scenarios_router
+from app.feedback.router import router as feedback_router
 from app.database import SessionLocal
 
 app = FastAPI(
@@ -35,6 +36,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(challenges_router)
 app.include_router(scenarios_router)
+app.include_router(feedback_router)
 
 
 @app.on_event("startup")
