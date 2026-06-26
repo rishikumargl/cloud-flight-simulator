@@ -75,6 +75,28 @@ const apiService = {
     }
   },
 
+  // Evaluation: Get cached evaluation
+  getEvaluation: async (session_id: string) => {
+    try {
+      const response = await axiosClient.get(`/evaluate/${session_id}`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Failed to get evaluation:", error);
+      throw error;
+    }
+  },
+
+  // Evaluation: Run live evaluation
+  runEvaluation: async (session_id: string) => {
+    try {
+      const response = await axiosClient.post(`/evaluate/${session_id}/run`);
+      return response.data.data;
+    } catch (error) {
+      console.error("Failed to run evaluation:", error);
+      throw error;
+    }
+  },
+
   // === PLACEHOLDER METHODS (Return Empty/Safe Defaults) ===
   // These routes are NOT YET IMPLEMENTED in the backend
 

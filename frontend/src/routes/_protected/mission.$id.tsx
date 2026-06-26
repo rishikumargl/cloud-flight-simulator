@@ -17,6 +17,9 @@ function MissionPage() {
   const [loading, setLoading] = useState(true);
   const [stopping, setStopping] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
+  const [evaluation, setEvaluation] = useState<any>(null);
+  const [evaluating, setEvaluating] = useState(false);
+  const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
   useEffect(() => {
     // Step 1: get challenge status → gives us mission_id + environment
@@ -56,6 +59,23 @@ function MissionPage() {
     } catch (err) {
       console.error("Failed to stop challenge:", err);
       setStopping(false);
+    }
+  };
+
+  const handleVerifyMission = async () => {
+    setEvaluating(true);
+    setEvaluationError(null);
+    try {
+      const result = await api.runEvaluation(session_id);
+      setEvaluation(result);
+    } catch (err: any) {
+      const errorMsg = err?.response?.data?.error?.message ||
+                       err?.message ||
+                       "Failed to evaluate mission";
+      setEvaluationError(errorMsg);
+      console.error("Failed to verify mission:", err);
+    } finally {
+      setEvaluating(false);
     }
   };
 
@@ -230,6 +250,95 @@ function MissionPage() {
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-yellow-200">
                 <div className="h-full w-1/2 animate-pulse rounded-full bg-yellow-500" />
               </div>
+            </div>
+          )}
+
+          {envStatus === "READY" && !evaluation && (
+            <button
+              onClick={handleVerifyMission}
+              disabled={evaluating}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-green-600 px-5 py-3 text-[14px] font-medium text-white hover:bg-green-700 transition disabled:opacity-50"
+            >
+              {evaluating ? "Verifying..." : "Verify Mission"}
+            </button>
+          )}
+
+          {evaluationError && (
+            <div className="rounded-3xl border border-red-200 bg-red-50 p-7">
+              <div className="mono-label mb-3 text-red-700">EVALUATION ERROR</div>
+              <p className="text-[13px] text-red-800">{evaluationError}</p>
+              <button
+                onClick={handleVerifyMission}
+                disabled={evaluating}
+                className="mt-4 w-full inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-[13px] font-medium text-white hover:bg-red-700 transition disabled:opacity-50"
+              >
+                {evaluating ? "Retrying..." : "Retry Evaluation"}
+              </button>
+            </div>
+          )}
+
+          {evaluation && (
+            <div className={`rounded-3xl border p-7 ${
+              evaluation.status === "PASSED"
+                ? "border-green-200 bg-green-50"
+                : evaluation.status === "PARTIAL"
+                ? "border-yellow-200 bg-yellow-50"
+                : "border-red-200 bg-red-50"
+            }`}>
+              <div className={`mono-label mb-3 ${
+                evaluation.status === "PASSED"
+                  ? "text-green-700"
+                  : evaluation.status === "PARTIAL"
+                  ? "text-yellow-700"
+                  : "text-red-700"
+              }`}>
+                EVALUATION RESULT
+              </div>
+              <div className={`text-3xl font-bold font-display mb-2 ${
+                evaluation.status === "PASSED"
+                  ? "text-green-600"
+                  : evaluation.status === "PARTIAL"
+                  ? "text-yellow-600"
+                  : "text-red-600"
+              }`}>
+                {evaluation.status}
+              </div>
+              <div className={`text-2xl font-bold mb-4 ${
+                evaluation.status === "PASSED"
+                  ? "text-green-700"
+                  : evaluation.status === "PARTIAL"
+                  ? "text-yellow-700"
+                  : "text-red-700"
+              }`}>
+                {evaluation.score}%
+              </div>
+              {evaluation.deterministic_checks && (
+                <div className="text-[13px] space-y-2">
+                  {evaluation.deterministic_checks.passed && evaluation.deterministic_checks.passed.length > 0 && (
+                    <div>
+                      <div className="font-medium text-green-700 mb-1">Passed ({evaluation.deterministic_checks.passed.length}):</div>
+                      <ul className="space-y-1 ml-3">
+                        {evaluation.deterministic_checks.passed.map((check: any, i: number) => (
+                          <li key={i} className="text-green-700">✓ {check.details || `Criterion ${check.criterion_id}`}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {evaluation.deterministic_checks.failed && evaluation.deterministic_checks.failed.length > 0 && (
+                    <div>
+                      <div className="font-medium text-red-700 mb-1 mt-3">Failed ({evaluation.deterministic_checks.failed.length}):</div>
+                      <ul className="space-y-1 ml-3">
+                        {evaluation.deterministic_checks.failed.map((check: any, i: number) => (
+                          <li key={i} className="text-red-700">✗ {check.details || `Criterion ${check.criterion_id}`}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+              <p className="text-[12px] text-foreground mt-3">
+                Evaluated: {new Date(evaluation.evaluated_at).toLocaleString()}
+              </p>
             </div>
           )}
 

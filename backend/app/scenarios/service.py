@@ -304,7 +304,7 @@ Generate a NEW and UNIQUE Compute Engine incident-response mission that:
 7. GENERATES repair criteria with expected_state + fault_configuration
 
 Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
-{{
+{{{{
   "track": "COMPUTE",
   "difficulty": "{difficulty}",
   "title": "INCIDENT RESPONSE: Fix the... (e.g., 'Fix the Misconfigured Web Server', 'Repair the Broken Startup Script', 'Restore the Corrupted Metadata')",
@@ -315,64 +315,64 @@ Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
     "3. Third diagnostic or repair step or validation"
   ],
   "success_criteria": [
-    {{
+    {{{{
       "criterion_id": "unique-id-1",
       "description": "SPECIFIC repair criterion (e.g., 'Metadata is corrected', 'Startup script is fixed', 'VM status is RUNNING')",
       "resource_type": "compute_instance",
-      "expected_state": {{
+      "expected_state": {{{{
         "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro",
-        "metadata": {{"key": "value"}},
+        "metadata": {{{{"key": "value"}}}},
         "status": "RUNNING"
-      }},
+      }}}},
       "weight": 34,
-      "fault_configuration": {{
+      "fault_configuration": {{{{
         "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
-        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1", "tag2"],
+        "payload": {{{{"metadata_key": "wrong_value"}}}} or "#!/bin/bash\\nexit 1" or ["tag1", "tag2"],
         "description": "Explanation of what is broken and why"
-      }}
-    }},
-    {{
+      }}}}
+    }}}},
+    {{{{
       "criterion_id": "unique-id-2",
       "description": "SECOND repair criterion (testing different aspect of the same broken VM)",
       "resource_type": "compute_instance",
-      "expected_state": {{
+      "expected_state": {{{{
         "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro",
-        "metadata": {{"key": "value"}},
+        "metadata": {{{{"key": "value"}}}},
         "status": "RUNNING"
-      }},
+      }}}},
       "weight": 33,
-      "fault_configuration": {{
+      "fault_configuration": {{{{
         "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
-        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1"],
+        "payload": {{{{"metadata_key": "wrong_value"}}}} or "#!/bin/bash\\nexit 1" or ["tag1"],
         "description": "Explanation of the second fault"
-      }}
-    }},
-    {{
+      }}}}
+    }}}},
+    {{{{
       "criterion_id": "unique-id-3",
       "description": "THIRD repair criterion (final validation or readiness check)",
       "resource_type": "compute_instance",
-      "expected_state": {{
+      "expected_state": {{{{
         "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro",
-        "metadata": {{"key": "value"}},
+        "metadata": {{{{"key": "value"}}}},
         "status": "RUNNING"
-      }},
+      }}}},
       "weight": 33,
-      "fault_configuration": {{
+      "fault_configuration": {{{{
         "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
-        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1"],
+        "payload": {{{{"metadata_key": "wrong_value"}}}} or "#!/bin/bash\\nexit 1" or ["tag1"],
         "description": "Explanation of the third fault"
-      }}
-    }}
+      }}}}
+    }}}}
   ],
   "time_limit_minutes": 45
-}}
+}}}}
 
 FAULT TYPE GUIDANCE:
 - STARTUP_SCRIPT_CRASH: payload is a bash script that fails (e.g., "#!/bin/bash\\nexit 1")
-- CORRUPT_METADATA: payload is a dict of {metadata_key: wrong_value} (e.g., {"environment": "broken"})
+- CORRUPT_METADATA: payload is a dict of {{{{metadata_key: wrong_value}}}} (e.g., {{"environment": "broken"}})
 - MISCONFIGURED_TAGS: payload is a list of wrong tags (e.g., ["http-server"] instead of ["http-server", "https-server", "lb-server"])
 
 CRITICAL RULES:
