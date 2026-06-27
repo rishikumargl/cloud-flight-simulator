@@ -24,7 +24,7 @@ function Logo() {
       <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
         <path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" />
       </svg>
-      <span className="text-base font-semibold tracking-tight text-white">cloudflight</span>
+      <span className="text-base font-semibold tracking-tight text-white">PROPEL</span>
     </div>
   );
 }

@@ -126,7 +126,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "CloudFlight — Cloud skills that ship to production" },
+      { title: "PROPEL — Cloud skills that ship to production" },
       { name: "description", content: "AI-native cloud training platform with live GCP environments." },
     ],
     links: [

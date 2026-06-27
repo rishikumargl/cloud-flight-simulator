@@ -1,220 +1,335 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { Zap } from "lucide-react";
-import { learningTracks, difficulties } from "../../data/mockData";
+import { useEffect, useRef, useState } from "react";
+import {
+  Cpu, Database, Wifi, Lock, Rocket, Layout,
+  Sprout, BookOpen, Zap, CheckCircle2, ArrowRight, Sparkles,
+} from "lucide-react";
+import { learningTracks, difficulties, trackRows } from "../../data/mockData";
 import api from "../../api/apiService";
+import { CloudGenie } from "../../components/CloudGenie";
 
 export const Route = createFileRoute("/_protected/challenges")({
-  head: () => ({ meta: [{ title: "Challenges — CloudFlight" }] }),
+  head: () => ({ meta: [{ title: "Challenges — PROPEL" }] }),
   component: ChallengesPage,
 });
 
-function StatusDot({ color }: { color: string }) {
-  return <span className={`h-2 w-2 rounded-full ${color}`} />;
+/* ── constants ── */
+const TRACK_ICONS: Record<string, React.ReactNode> = {
+  compute:      <Cpu className="h-5 w-5" />,
+  storage:      <Database className="h-5 w-5" />,
+  networking:   <Wifi className="h-5 w-5" />,
+  security:     <Lock className="h-5 w-5" />,
+  devops:       <Rocket className="h-5 w-5" />,
+  architecture: <Layout className="h-5 w-5" />,
+};
+const TRACK_COLORS: Record<string, string> = {
+  compute:      "text-blue-600 bg-blue-50 border-blue-200",
+  storage:      "text-emerald-600 bg-emerald-50 border-emerald-200",
+  networking:   "text-cyan-600 bg-cyan-50 border-cyan-200",
+  security:     "text-red-600 bg-red-50 border-red-200",
+  devops:       "text-violet-600 bg-violet-50 border-violet-200",
+  architecture: "text-amber-600 bg-amber-50 border-amber-200",
+};
+const DIFF_META: Record<string, { icon: React.ReactNode; color: string; time: string; desc: string }> = {
+  beginner:     { icon: <Sprout className="h-4 w-4" />,  color: "text-emerald-700 bg-emerald-50 border-emerald-200", time: "30–60 min",  desc: "Perfect for building foundational GCP skills" },
+  intermediate: { icon: <BookOpen className="h-4 w-4" />, color: "text-amber-700 bg-amber-50 border-amber-200",     time: "60–90 min",  desc: "Real-world multi-service scenarios" },
+  advanced:     { icon: <Zap className="h-4 w-4" />,     color: "text-red-700 bg-red-50 border-red-200",           time: "90–180 min", desc: "Complex enterprise architectures under pressure" },
+};
+
+type Stage = "idle" | "generating" | "provisioning" | "ready" | "error";
+const STAGE_STEPS = [
+  { key: "generating",   label: "Generating AI scenario",       activeIn: ["generating", "provisioning", "ready"] },
+  { key: "provisioning", label: "Provisioning GCP environment", activeIn: ["provisioning", "ready"] },
+  { key: "ready",        label: "Launching mission",            activeIn: ["ready"] },
+];
+
+function useFadeUp() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [v, setV] = useState(false);
+  useEffect(() => {
+    const el = ref.current; if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setV(true); obs.disconnect(); } },
+      { threshold: 0.08 }
+    );
+    obs.observe(el); return () => obs.disconnect();
+  }, []);
+  return { ref, visible: v };
 }
 
-function ChallengesPage() {
-  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const navigate = Route.useNavigate();
+/* ── Track card ── */
+function TrackCard({ track, selected, onSelect }: { track: any; selected: boolean; onSelect: () => void }) {
+  const row = trackRows.find(r => r.key === track.id);
+  const pct = row ? Math.round((row.completed / row.total) * 100) : 0;
+  const colors = TRACK_COLORS[track.id] ?? "text-primary bg-primary/5 border-primary/20";
 
-  const isFormValid = selectedTrack && selectedDifficulty;
+  return (
+    // The button IS the card. It must be flex-col and stretch to fill the grid cell.
+    // The parent div has `contents` so the button directly participates in the grid.
+    <button
+      onClick={onSelect}
+      style={{ display: "flex", flexDirection: "column", width: "100%", height: "100%" }}
+      className={`group relative rounded-2xl border p-6 text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md ${
+        selected
+          ? "border-primary bg-primary/5 shadow-sm"
+          : "border-border bg-surface hover:border-primary/30 hover:bg-background"
+      }`}
+    >
+      {selected && (
+        <div className="absolute right-3 top-3">
+          <CheckCircle2 className="h-4 w-4 text-primary" />
+        </div>
+      )}
+
+      {/* icon */}
+      <div className={`inline-flex items-center justify-center h-10 w-10 rounded-xl border ${colors}`}>
+        {TRACK_ICONS[track.id] ?? track.icon}
+      </div>
+
+      {/* title + description */}
+      <div className="mt-4">
+        <div className="text-[14px] font-semibold text-ink mb-1">{track.name}</div>
+        <div className="text-[12px] text-foreground leading-snug">{track.description}</div>
+      </div>
+
+      {/* spacer pushes progress to bottom */}
+      <div style={{ flex: 1 }} />
+
+      {/* progress — always at bottom */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="mono-label">YOUR PROGRESS</span>
+          <span className="mono-label">{row ? `${row.completed}/${row.total}` : "—"}</span>
+        </div>
+        <div className="h-1 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-700"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ── Difficulty card ── */
+function DiffCard({ diff, selected, onSelect }: { diff: any; selected: boolean; onSelect: () => void }) {
+  const meta = DIFF_META[diff.id];
+  return (
+    <button
+      onClick={onSelect}
+      className={`group flex w-full flex-col gap-3 rounded-2xl border p-5 text-left transition-all duration-300 hover:-translate-y-0.5 ${
+        selected ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-surface hover:border-primary/30"
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <div className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${meta?.color ?? ""}`}>
+          {meta?.icon} {diff.name}
+        </div>
+        {selected && <CheckCircle2 className="h-4 w-4 text-primary" />}
+      </div>
+      <p className="text-[12px] text-foreground leading-snug">{meta?.desc}</p>
+      <div className="mono-label">{meta?.time}</div>
+    </button>
+  );
+}
+
+
+/* ── Main ── */
+function ChallengesPage() {
+  const navigate = Route.useNavigate();
+  const [track, setTrack] = useState<string | null>(null);
+  const [diff,  setDiff]  = useState<string | null>(null);
+  const [stage, setStage] = useState<Stage>("idle");
+  const [errMsg, setErrMsg] = useState<string | null>(null);
+  const [modal, setModal] = useState(false);
+
+  const headerRef = useFadeUp();
+  const tracksRef = useFadeUp();
+  const configRef = useFadeUp();
+  const isValid   = track && diff;
 
   const handleLaunch = async () => {
-    if (!selectedTrack || !selectedDifficulty) {
-      console.error("Track and difficulty are required");
-      return;
-    }
-
-    setIsGenerating(true);
+    if (!isValid || stage !== "idle") return;
+    setModal(true); setStage("generating"); setErrMsg(null);
     try {
-      // Step 1: Generate scenario to get mission_id
-      const scenario = await api.generateScenario(selectedTrack, selectedDifficulty);
-      const mission_id = scenario.mission_id;
-
-      if (!mission_id) {
-        throw new Error("No mission_id returned from scenario generation");
-      }
-
-      // Step 2: Start challenge with mission_id
-      const challenge = await api.startChallenge(mission_id);
-      const session_id = challenge.session?.session_id ?? challenge.session_id;
-
-      if (!session_id) {
-        throw new Error("No session_id returned from challenge start");
-      }
-
-      // Step 3: Navigate to mission page with session_id
-      await new Promise((r) => setTimeout(r, 1000));
+      const scenario   = await api.generateScenario(track!, diff!);
+      const mission_id = scenario?.mission_id ?? scenario?.id;
+      if (!mission_id) throw new Error("No mission_id returned");
+      setStage("provisioning");
+      const challengeData = await api.startChallenge(mission_id);
+      const session_id = challengeData?.session_id;
+      if (!session_id) throw new Error("No session_id returned");
+      setStage("ready");
+      await new Promise(r => setTimeout(r, 500));
       navigate({ to: "/mission/$id", params: { id: session_id } });
-    } catch (error) {
-      console.error("Failed to launch challenge:", error);
-      alert("Failed to launch challenge. Please try again.");
-    } finally {
-      setIsGenerating(false);
-      setShowModal(false);
+    } catch (err: any) {
+      setErrMsg(err?.response?.data?.detail ?? err?.message ?? "Launch failed. Please try again.");
+      setStage("error");
     }
   };
 
-  useEffect(() => {
-    if (showModal) handleLaunch();
-  }, [showModal]);
-
-  const diffIcons = ["🌱", "📚", "🚀"];
-  const diffTimes = ["30–45 min", "60–90 min", "120+ min"];
 
   return (
-    <div className="space-y-12">
-      {/* Hero */}
-      <div className="relative overflow-hidden rounded-3xl bg-ink p-10 text-white">
-        <div className="absolute right-10 top-1/2 -translate-y-1/2 text-6xl opacity-20">🎯</div>
-        <div className="mono-label mb-4 !text-white/50">CLOUD MISSIONS</div>
-        <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em]">
-          Choose Your Mission
+    <div className="mx-auto w-full max-w-7xl px-6 xl:px-8 space-y-10 pb-16">
+
+      {/* Header */}
+      <div
+        ref={headerRef.ref}
+        className={`transition-all duration-700 ${headerRef.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}
+      >
+        <div className="mono-label mb-2">MISSION LAUNCHER</div>
+        <h1 className="font-display text-[clamp(2rem,5vw,3rem)] font-medium tracking-[-0.03em] text-ink">
+          Choose your next mission
         </h1>
-        <p className="mt-3 max-w-lg text-[15px] text-white/70">
-          Select a track and difficulty to deploy real cloud scenarios on live GCP environments.
+        <p className="mt-2 max-w-xl text-[15px] text-foreground">
+          Select a track and difficulty — AI generates a unique live scenario on real GCP infrastructure.
         </p>
       </div>
 
-      {/* Popular missions */}
-      <div>
-        <div className="mono-label mb-2">POPULAR MISSIONS</div>
-        <h2 className="font-display text-[26px] font-medium leading-tight tracking-[-0.02em] text-ink mb-6">
-          Jump straight in.
-        </h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {learningTracks.slice(0, 4).map((t) => (
-            <button
-              key={t.id}
-              onClick={() => { setSelectedTrack(t.id); setSelectedDifficulty("intermediate"); }}
-              className={`group rounded-3xl border p-7 text-left transition ${
-                selectedTrack === t.id
-                  ? "border-primary bg-background"
-                  : "border-border bg-surface hover:border-primary/40"
-              }`}
-            >
-              <div className="text-3xl">{t.icon}</div>
-              <h3 className="mt-4 font-display text-[18px] font-semibold text-ink">{t.name}</h3>
-              <p className="mt-1 text-[13px] text-foreground">{t.description}</p>
+      {/* Track selector */}
+      <div ref={tracksRef.ref}>
+        <div className={`flex items-center justify-between mb-4 transition-all duration-700 ${tracksRef.visible ? "opacity-100" : "opacity-0"}`}>
+          <div className="mono-label">LEARNING TRACK</div>
+          {track && (
+            <button onClick={() => setTrack(null)} className="mono-label text-primary hover:opacity-70">
+              Clear
             </button>
+          )}
+        </div>
+
+        {/*
+          KEY FIX: The grid uses `grid-rows` implicitly via auto-rows-fr.
+          Each cell is a flex container via `display:contents` workaround —
+          instead we make the grid itself control height by setting an explicit
+          row height, then let the button fill it with height:100%.
+
+          The simplest reliable solution: drop `auto-rows-fr` and use a CSS
+          subgrid-style approach: each wrapper div is `display:contents` so
+          the button IS the grid item and h-full works perfectly.
+        */}
+        <div
+          className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+          style={{ gridAutoRows: "1fr" }}
+        >
+          {learningTracks.map((t, i) => (
+            // display:contents removes the wrapper from layout — button becomes the grid item
+            <div
+              key={t.id}
+              style={{ display: "contents" }}
+            >
+              <div
+                className={`transition-all duration-500 ${
+                  tracksRef.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                }`}
+                style={{ transitionDelay: `${i * 70}ms`, display: "flex", flexDirection: "column" }}
+              >
+                <TrackCard track={t} selected={track === t.id} onSelect={() => setTrack(t.id)} />
+              </div>
+            </div>
           ))}
         </div>
       </div>
 
-      {/* Customizer */}
-      <div className="rounded-3xl border border-border bg-surface p-10">
-        <div className="mono-label mb-8">CUSTOMIZE YOUR MISSION</div>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+      {/* Difficulty + launch */}
+      <div
+        ref={configRef.ref}
+        className={`rounded-2xl border border-border bg-surface p-8 transition-all duration-700 ${
+          configRef.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+        }`}
+      >
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:items-stretch">
 
-          {/* Track */}
-          <div>
-            <h3 className="font-display text-[20px] font-medium text-ink mb-5">1. Choose learning track</h3>
-            <div className="space-y-2">
-              {learningTracks.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setSelectedTrack(t.id)}
-                  className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
-                    selectedTrack === t.id
-                      ? "border-primary bg-background"
-                      : "border-border hover:border-primary/40"
+          {/* Difficulty column */}
+          <div className="flex flex-col">
+            <div className="mono-label mb-4">DIFFICULTY LEVEL</div>
+            <div className="flex flex-col gap-3 flex-1">
+              {difficulties.map((d, i) => (
+                <div
+                  key={d.id}
+                  className={`transition-all duration-500 ${
+                    configRef.visible ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4"
                   }`}
+                  style={{ transitionDelay: `${i * 80}ms` }}
                 >
-                  <span className="text-xl">{t.icon}</span>
-                  <div>
-                    <div className="text-[14px] font-semibold text-ink">{t.name}</div>
-                    <div className="text-[12px] text-foreground">{t.description}</div>
-                  </div>
-                  {selectedTrack === t.id && (
-                    <span className="ml-auto text-primary">✓</span>
-                  )}
-                </button>
+                  <DiffCard diff={d} selected={diff === d.id} onSelect={() => setDiff(d.id)} />
+                </div>
               ))}
             </div>
           </div>
 
-          {/* Difficulty + launch */}
-          <div>
-            <h3 className="font-display text-[20px] font-medium text-ink mb-5">2. Choose difficulty</h3>
-            <div className="space-y-2 mb-8">
-              {difficulties.map((d, i) => (
-                <button
-                  key={d.id}
-                  onClick={() => setSelectedDifficulty(d.id)}
-                  className={`flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition ${
-                    selectedDifficulty === d.id
-                      ? "border-primary bg-background"
-                      : "border-border hover:border-primary/40"
-                  }`}
-                >
-                  <span className="text-xl">{diffIcons[i]}</span>
-                  <div>
-                    <div className="text-[14px] font-semibold text-ink">{d.name}</div>
-                    <div className="text-[12px] text-foreground">{diffTimes[i]}</div>
-                  </div>
-                  {selectedDifficulty === d.id && (
-                    <span className="ml-auto text-primary">✓</span>
+          {/* Selection + CTA column */}
+          <div className="flex flex-col">
+            {/* grows to fill column height */}
+            <div className="rounded-2xl border border-border bg-background p-6 flex flex-col flex-1">
+              <div className="mono-label mb-4">YOUR SELECTION</div>
+
+              {!track && !diff ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center">
+                  <Sparkles className="mb-3 h-8 w-8 text-muted-foreground" />
+                  <p className="text-[14px] text-foreground">
+                    Select a track and difficulty above to configure your mission
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4 flex-1">
+                  {track && (
+                    <div className="flex items-center gap-3">
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl border shrink-0 ${TRACK_COLORS[track] ?? ""}`}>
+                        {TRACK_ICONS[track]}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="mono-label mb-0.5">TRACK</div>
+                        <div className="text-[14px] font-semibold text-ink">
+                          {learningTracks.find(t => t.id === track)?.name}
+                        </div>
+                      </div>
+                    </div>
                   )}
-                </button>
-              ))}
+                  {diff && (
+                    <div className="flex items-center gap-3">
+                      <div className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold shrink-0 ${DIFF_META[diff]?.color ?? ""}`}>
+                        {DIFF_META[diff]?.icon} {difficulties.find(d => d.id === diff)?.name}
+                      </div>
+                      <span className="mono-label">{DIFF_META[diff]?.time}</span>
+                    </div>
+                  )}
+                  {track && diff && (
+                    <div className="rounded-xl bg-primary/5 border border-primary/15 p-3 text-[12px] text-primary leading-relaxed">
+                      <Sparkles className="inline h-3.5 w-3.5 mr-1.5" />
+                      AI will generate a unique, real-world scenario for this combination.
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Summary */}
-            {isFormValid && (
-              <div className="mb-6 rounded-2xl border border-border bg-background p-5">
-                <div className="mono-label mb-3">READY TO LAUNCH</div>
-                <div className="space-y-1.5 text-[13px]">
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Track</span>
-                    <span className="font-medium text-ink">{learningTracks.find(t => t.id === selectedTrack)?.name}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-foreground">Difficulty</span>
-                    <span className="font-medium text-ink">{difficulties.find(d => d.id === selectedDifficulty)?.name}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <button
-              onClick={() => setShowModal(true)}
-              disabled={!isFormValid}
-              className={`w-full inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-medium transition ${
-                isFormValid
-                  ? "bg-primary text-white hover:opacity-90"
-                  : "bg-muted text-foreground/40 cursor-not-allowed"
-              }`}
-            >
-              <Zap className="h-4 w-4" />
-              {isFormValid ? "Launch Mission" : "Select Track & Difficulty"}
-            </button>
-
-            <div className="mt-4 rounded-2xl border border-border bg-background px-5 py-4 text-[13px] text-foreground">
-              💡 Our AI generates a unique cloud scenario personalised to your selections. Typically takes 30–60 seconds.
+            {/* Launch button — always at bottom of right column */}
+            <div className="space-y-3 mt-6">
+              <button
+                onClick={handleLaunch}
+                disabled={!isValid || stage !== "idle"}
+                className="group w-full inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 text-[15px] font-medium text-white hover:opacity-90 transition hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:translate-y-0"
+              >
+                <Zap className="h-4 w-4 transition-transform group-hover:scale-110" />
+                {isValid ? "Launch Mission" : "Select Track & Difficulty"}
+                {isValid && <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />}
+              </button>
+              <p className="text-center text-[11px] text-muted-foreground">
+                A live GCP environment will be provisioned for you
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Generating modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-background p-10 text-center shadow-2xl">
-            <div className="mx-auto mb-6 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-primary/10">
-              <span className="text-3xl">⚡</span>
-            </div>
-            <h3 className="font-display text-[24px] font-medium text-ink">Generating your mission…</h3>
-            <div className="mt-6 space-y-2 text-[14px] text-foreground">
-              <p>✓ Analysing your skill level</p>
-              <p>✓ Generating realistic scenario</p>
-              <p>✓ Provisioning GCP environment</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Cloud Genie Provisioning Experience */}
+      {modal && stage !== "idle" && <CloudGenie stage={stage} errorMsg={errMsg} difficulty={diff as "beginner" | "intermediate" | "advanced"} />}
+
+      <style>{`
+        @keyframes cfFadeSlideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes cfModalIn { from{opacity:0;transform:scale(0.92) translateY(16px)} to{opacity:1;transform:scale(1) translateY(0)} }
+      `}</style>
     </div>
   );
 }

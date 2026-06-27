@@ -1,334 +1,31 @@
 // import { createFileRoute, Link } from "@tanstack/react-router";
 // import cloudImage from "@/assets/cloud-arch.jpg";
-// import { learningTracks } from "../data/mockData";
-
-// export const Route = createFileRoute("/")({
-//   head: () => ({
-//     meta: [
-//       { title: "CloudFlight — Cloud skills that ship to production" },
-//       { name: "description", content: "AI-native cloud training platform with live GCP environments, automatic grading, and real-time mentorship." },
-//     ],
-//   }),
-//   component: Landing,
-// });
-
-// function Logo() {
-//   return (
-//     <div className="flex items-center gap-2">
-//       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-//         <path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" />
-//       </svg>
-//       <span className="text-xl font-semibold tracking-tight text-ink">cloudflight</span>
-//     </div>
-//   );
-// }
-
-// function Nav() {
-//   return (
-//     <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
-//       <Logo />
-//       <nav className="hidden items-center gap-10 md:flex">
-//         <a className="text-[15px] text-foreground hover:opacity-70" href="#tracks">Tracks</a>
-//         <a className="text-[15px] text-foreground hover:opacity-70" href="#how">How it works</a>
-//         <a className="text-[15px] text-foreground hover:opacity-70" href="#teams">For teams</a>
-//       </nav>
-//       <div className="flex items-center gap-5">
-//         <Link to="/login" className="hidden text-[15px] text-foreground hover:opacity-70 md:inline">Sign in</Link>
-//         <Link to="/login" className="btn-primary">Start free mission</Link>
-//       </div>
-//     </header>
-//   );
-// }
-
-// function Pill({ label }: { label: string }) {
-//   return (
-//     <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/60 px-3 py-1.5 backdrop-blur">
-//       <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--primary)">
-//         <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
-//       </svg>
-//       <span className="mono-label !text-[0.62rem] text-foreground">{label}</span>
-//     </div>
-//   );
-// }
-
-// function TerminalCard() {
-//   return (
-//     <div className="w-[340px] rounded-2xl bg-[#0f1115] p-4 font-mono text-[12px] text-white shadow-2xl shadow-black/30">
-//       <div className="mb-3 flex items-center gap-1.5">
-//         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
-//         <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-//         <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
-//         <span className="ml-3 text-[11px] text-white/40">gcp-sandbox-04 · ready</span>
-//       </div>
-//       <div className="space-y-1 leading-relaxed">
-//         <div><span className="text-white/40">$</span> gcloud compute instances create web-tier \</div>
-//         <div className="pl-3 text-white/70">--machine-type=e2-medium --zone=us-central1-a</div>
-//         <div className="text-[#7ee787]">✓ Instance web-tier provisioned (4.2s)</div>
-//         <div><span className="text-white/40">$</span> kubectl apply -f deployment.yaml</div>
-//         <div className="text-[#7ee787]">✓ 3/3 pods running</div>
-//         <div className="text-[#ffa657]">→ Mission objective unlocked: Load balancer</div>
-//       </div>
-//     </div>
-//   );
-// }
-
-// function MissionCard() {
-//   return (
-//     <div className="relative w-[280px] overflow-hidden rounded-3xl shadow-2xl shadow-black/30">
-//       <img src={cloudImage} alt="Cloud architecture" className="h-[360px] w-full object-cover" />
-//       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-//       <div className="absolute left-4 top-4 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white backdrop-blur">
-//         <span className="h-1.5 w-1.5 rounded-full bg-[#7ee787]" /> Intermediate · 60 min
-//       </div>
-//       <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-//         <h3 className="font-display text-[20px] font-semibold leading-[1.1]">Deploy a multi-tier app on GKE</h3>
-//         <Link to="/login" className="mt-3 inline-block rounded-md bg-white/15 px-3 py-1.5 text-[12px] font-medium backdrop-blur hover:bg-white/25">
-//           Launch mission →
-//         </Link>
-//       </div>
-//     </div>
-//   );
-// }
-
-// function ProgressCard() {
-//   return (
-//     <div className="w-[240px] rounded-2xl bg-white p-5 shadow-2xl shadow-black/10">
-//       <div className="flex items-center justify-between">
-//         <h4 className="font-display text-[15px] font-semibold text-ink">Mission graded</h4>
-//         <span className="rounded-full bg-[#e8f5ee] px-2 py-0.5 text-[10px] font-semibold text-[#1a7f3c]">PASS</span>
-//       </div>
-//       <div className="mt-4 space-y-3">
-//         <div>
-//           <div className="flex items-center justify-between text-[12px]">
-//             <span className="text-foreground">Score</span>
-//             <span className="font-semibold text-ink">92 / 100</span>
-//           </div>
-//           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-//             <div className="h-full w-[92%] rounded-full bg-primary" />
-//           </div>
-//         </div>
-//         <div className="flex items-center justify-between text-[12px]">
-//           <span className="text-foreground">Skill XP</span>
-//           <span className="font-semibold text-primary">+ 240 XP</span>
-//         </div>
-//         <div className="flex items-center justify-between text-[12px]">
-//           <span className="text-foreground">Next badge</span>
-//           <span className="font-medium text-ink">GKE Architect</span>
-//         </div>
-//       </div>
-//       <Link to="/login" className="mt-5 block w-full rounded-xl bg-ink py-2.5 text-center text-[12px] font-medium text-white hover:opacity-90">
-//         View feedback
-//       </Link>
-//     </div>
-//   );
-// }
-
-// function Hero() {
-//   return (
-//     <section className="relative mx-auto max-w-7xl px-6 pb-24 pt-12">
-//       <div className="relative min-h-[440px]">
-//         <svg className="absolute inset-0 h-full w-full" viewBox="0 0 800 440" preserveAspectRatio="none" fill="none">
-//           <path d="M 0 30 L 120 30 Q 150 30 150 60 L 150 120 Q 150 150 180 150 L 800 150" stroke="var(--primary)" strokeWidth="1.5" opacity="0.5" />
-//         </svg>
-//         <div className="absolute left-[14%] top-[125px] flex items-center gap-6">
-//           <Pill label="PROVISION ENV" />
-//           <Pill label="RECOMMEND MISSION" />
-//           <Pill label="GRADE SUBMISSION" />
-//         </div>
-//         <div className="absolute left-0 top-[190px]"><TerminalCard /></div>
-//         <div className="absolute left-[38%] top-[165px]"><MissionCard /></div>
-//         <div className="absolute right-0 top-[200px]"><ProgressCard /></div>
-//       </div>
-
-//       <div className="mt-36 lg:mt-44">
-//         <h1 className="font-display text-[clamp(3rem,10vw,9rem)] font-medium leading-[0.92] tracking-[-0.04em] text-ink">
-//           Cloud skills that
-//           <br />ship to production
-//         </h1>
-//         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
-//           <p className="max-w-xl text-[17px] leading-relaxed text-foreground">
-//             CloudFlight is the AI-native training platform for engineering teams.
-//             Personalized missions on live GCP environments, automatic grading,
-//             and learner analytics that show exactly who is ready to ship — and who needs another rep.
-//           </p>
-//           <div className="flex flex-wrap items-center gap-3">
-//             <Link to="/login" className="btn-primary">Start a free mission</Link>
-//             <button className="btn-ghost inline-flex items-center gap-2">
-//               <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l9 5-9 5z" /></svg>
-//               Book a team demo
-//             </button>
-//           </div>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-
-// function Tracks() {
-//   return (
-//     <section id="tracks" className="mx-auto max-w-7xl px-6 py-24">
-//       <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
-//         <div>
-//           <div className="mono-label mb-3">SIX TRACKS · 140+ MISSIONS</div>
-//           <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
-//             Skill paths mapped to the
-//             <br />work your team actually ships.
-//           </h2>
-//         </div>
-//         <p className="max-w-sm text-[15px] text-foreground">
-//           Every track ends with a capstone mission graded against the same rubric your hiring panel uses.
-//         </p>
-//       </div>
-//       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-//         {learningTracks.map((t) => (
-//           <Link
-//             key={t.id}
-//             to="/login"
-//             className="group rounded-3xl border border-border bg-surface p-7 transition hover:border-primary/40 hover:bg-background"
-//           >
-//             <div className="text-3xl">{t.icon}</div>
-//             <h3 className="mt-5 font-display text-[22px] font-semibold text-ink">{t.name}</h3>
-//             <p className="mt-2 text-[14px] leading-relaxed text-foreground">{t.description}</p>
-//             <div className="mono-label mt-6 inline-flex items-center gap-1.5 text-primary opacity-0 transition group-hover:opacity-100">
-//               Explore track →
-//             </div>
-//           </Link>
-//         ))}
-//       </div>
-//       <div className="mt-10 flex justify-center">
-//         <Link to="/login" className="btn-primary">View learner analytics</Link>
-//       </div>
-//     </section>
-//   );
-// }
-
-// function HowItWorks() {
-//   const steps = [
-//     { n: "01", title: "We profile your engineers", body: "A 10-minute baseline mission scores each learner across the six tracks. No multiple choice — actual cloud work." },
-//     { n: "02", title: "AI assigns the next mission", body: "Our recommender weighs gaps, recency, team objectives, and difficulty curve to pick what unlocks the most growth." },
-//     { n: "03", title: "Live GCP sandbox spins up", body: "An isolated, budget-capped environment provisions in under 30 seconds. Real services, real bills (we pay)." },
-//     { n: "04", title: "Automatic grading + AI mentor", body: "Submissions are graded against infrastructure state, not screenshots. The mentor explains every deduction." },
-//   ];
-//   return (
-//     <section id="how" className="border-t border-border bg-surface">
-//       <div className="mx-auto max-w-7xl px-6 py-24">
-//         <div className="mono-label mb-3">HOW IT WORKS</div>
-//         <h2 className="max-w-3xl font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
-//           From baseline to billable, in four steps.
-//         </h2>
-//         <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
-//           {steps.map((s) => (
-//             <div key={s.n} className="flex gap-6 border-t border-border pt-8">
-//               <div className="mono-label !text-[0.85rem] !text-primary">{s.n}</div>
-//               <div>
-//                 <h3 className="font-display text-[22px] font-semibold text-ink">{s.title}</h3>
-//                 <p className="mt-3 text-[15px] leading-relaxed text-foreground">{s.body}</p>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-
-// function Teams() {
-//   const stats = [
-//     { value: "3.4×", label: "faster onboarding for cloud-new hires" },
-//     { value: "87%", label: "average mission pass rate after 30 days" },
-//     { value: "< 30s", label: "to spin up an isolated GCP sandbox" },
-//     { value: "140+", label: "missions across compute, data, security, DevOps" },
-//   ];
-//   return (
-//     <section id="teams" className="mx-auto max-w-7xl px-6 py-24">
-//       <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
-//         {stats.map((s) => (
-//           <div key={s.label}>
-//             <div className="font-display text-[clamp(2.5rem,5vw,4rem)] font-medium leading-none tracking-[-0.04em] text-ink">{s.value}</div>
-//             <div className="mt-3 text-[13px] leading-snug text-foreground">{s.label}</div>
-//           </div>
-//         ))}
-//       </div>
-//     </section>
-//   );
-// }
-
-// function CTA() {
-//   return (
-//     <section className="mx-auto max-w-7xl px-6 pb-24">
-//       <div className="rounded-[2rem] bg-ink p-12 text-white md:p-16">
-//         <h2 className="max-w-3xl font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em]">
-//           Stop teaching cloud with slides.
-//           Start grading on real infrastructure.
-//         </h2>
-//         <div className="mt-10 flex flex-wrap items-center gap-3">
-//           <Link to="/login" className="rounded-full bg-primary px-6 py-3.5 text-[15px] font-medium text-white hover:opacity-90">
-//             Start a free mission
-//           </Link>
-//           <button className="rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-medium hover:bg-white/5">
-//             Book a team demo
-//           </button>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// }
-
-// function Footer() {
-//   return (
-//     <footer className="mx-auto max-w-7xl border-t border-border px-6 py-10">
-//       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-//         <Logo />
-//         <p className="mono-label">© 2026 CLOUDFLIGHT — BUILT FOR ENGINEERS WHO SHIP</p>
-//       </div>
-//     </footer>
-//   );
-// }
-
-// function Landing() {
-//   return (
-//     <main className="min-h-screen bg-background text-foreground">
-//       <Nav />
-//       <Hero />
-//       <Tracks />
-//       <HowItWorks />
-//       <Teams />
-//       <CTA />
-//       <Footer />
-//     </main>
-//   );
-// }
-
-
-
-// import { createFileRoute, Link } from "@tanstack/react-router";
-// import cloudImage from "@/assets/cloud-arch.jpg";
-// import { learningTracks } from "../data/mockData";
+// import { learningTracks, trackRows } from "../data/mockData";
 // import { useEffect, useRef, useState } from "react";
 
 // export const Route = createFileRoute("/")({
 //   head: () => ({
 //     meta: [
 //       { title: "CloudFlight — Cloud skills that ship to production" },
-//       { name: "description", content: "AI-native cloud training platform with live GCP environments, automatic grading, and real-time mentorship." },
+//       { name: "description", content: "AI-native cloud training platform with live GCP environments." },
 //     ],
 //   }),
 //   component: Landing,
 // });
 
-// /* ─── Logo ──────────────────────────────────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    NAV
+// ══════════════════════════════════════════════════════════════════ */
 // function Logo() {
 //   return (
 //     <div className="flex items-center gap-2">
 //       <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
 //         <path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" />
 //       </svg>
-//       <span className="text-xl font-semibold tracking-tight text-ink">cloudflight</span>
+//       <span className="text-xl font-semibold tracking-tight text-ink">PROPEL</span>
 //     </div>
 //   );
 // }
-
-// /* ─── Nav ───────────────────────────────────────────────────────────────────── */
 // function Nav() {
 //   return (
 //     <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
@@ -340,311 +37,249 @@
 //       </nav>
 //       <div className="flex items-center gap-5">
 //         <Link to="/login" className="hidden text-[15px] text-foreground hover:opacity-70 md:inline">Sign in</Link>
-//         <Link to="/login" className="btn-primary">Start free mission</Link>
+//         <Link to="/login" className="btn-primary">Start mission</Link>
 //       </div>
 //     </header>
 //   );
 // }
 
-// /* ─── Pill badge that sits ON the line ──────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    HERO — animated line + three cards perfectly aligned
+// ══════════════════════════════════════════════════════════════════ */
+
+// /* Card dimensions — all identical so they sit flush below the line */
+// const CARD_W = 300;   // px
+// const CARD_H = 220;   // px (uniform)
+
+// /* Where each pill sits as a fraction of the container width */
+// const PILL_FRACS = [0.16, 0.50, 0.84];
+
+// /* Line geometry (SVG viewBox 0 0 1000 120) */
+// const LINE_Y   = 80;   // y where the horizontal line runs
+// const PATH_STR = `M 0 20 C 0 ${LINE_Y} 30 ${LINE_Y} 60 ${LINE_Y} L 1000 ${LINE_Y}`;
+// const PATH_LEN = 1060;
+
 // function Pill({ label }: { label: string }) {
 //   return (
-//     <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 shadow-sm backdrop-blur-sm">
+//     <div style={{
+//       display: "inline-flex", alignItems: "center", gap: 6,
+//       borderRadius: 999, border: "1px solid var(--border)",
+//       background: "rgba(var(--background-rgb, 240 237 228) / 0.92)",
+//       padding: "6px 13px", backdropFilter: "blur(8px)",
+//       boxShadow: "0 1px 8px rgba(0,0,0,0.06)",
+//       whiteSpace: "nowrap",
+//     }}>
 //       <svg width="10" height="10" viewBox="0 0 24 24" fill="var(--primary)">
 //         <path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" />
 //       </svg>
-//       <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.6rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--foreground)", whiteSpace: "nowrap" }}>
+//       <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.58rem", letterSpacing: "0.07em", textTransform: "uppercase", color: "var(--foreground)" }}>
 //         {label}
 //       </span>
 //     </div>
 //   );
 // }
 
-// /* ─── Terminal card ─────────────────────────────────────────────────────────── */
 // function TerminalCard() {
 //   return (
-//     <div className="w-[340px] rounded-2xl bg-[#0f1115] p-5 font-mono text-[11.5px] text-white shadow-2xl shadow-black/30 ring-1 ring-white/5">
-//       <div className="mb-3 flex items-center gap-1.5">
-//         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
-//         <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
-//         <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
-//         <span className="ml-3 text-[10px] text-white/35">gcp-sandbox-04 · ready</span>
+//     <div style={{ width: CARD_W, height: CARD_H, borderRadius: 16, background: "#0f1115", padding: "16px 18px", fontFamily: "var(--font-mono)", fontSize: 11, color: "white", boxShadow: "0 20px 48px rgba(0,0,0,0.28)", border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}>
+//       <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 12 }}>
+//         <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#ff5f56", display: "inline-block" }} />
+//         <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#ffbd2e", display: "inline-block" }} />
+//         <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#27c93f", display: "inline-block" }} />
+//         <span style={{ marginLeft: 8, fontSize: 10, color: "rgba(255,255,255,0.32)" }}>gcp-sandbox-04 · ready</span>
 //       </div>
-//       <div className="space-y-1 leading-[1.75]">
-//         <div><span className="text-white/35">$</span> gcloud compute instances create web-tier \</div>
-//         <div className="pl-4 text-white/60">--machine-type=e2-medium --zone=us-central1-a</div>
-//         <div className="text-[#7ee787]">✓ Instance web-tier provisioned (4.2s)</div>
-//         <div><span className="text-white/35">$</span> kubectl apply -f deployment.yaml</div>
-//         <div className="text-[#7ee787]">✓ 3/3 pods running</div>
-//         <div className="text-[#ffa657]">→ Mission objective unlocked: Load balancer</div>
+//       <div style={{ lineHeight: 1.8, fontSize: 10.5 }}>
+//         <div><span style={{ color: "rgba(255,255,255,0.3)" }}>$</span> gcloud compute instances create web-tier \</div>
+//         <div style={{ paddingLeft: 14, color: "rgba(255,255,255,0.55)" }}>--machine-type=e2-medium --zone=us-central1-a</div>
+//         <div style={{ color: "#7ee787" }}>✓ Instance web-tier provisioned (4.2s)</div>
+//         <div><span style={{ color: "rgba(255,255,255,0.3)" }}>$</span> kubectl apply -f deployment.yaml</div>
+//         <div style={{ color: "#7ee787" }}>✓ 3/3 pods running</div>
+//         <div style={{ color: "#ffa657" }}>→ Mission objective unlocked: Load balancer</div>
 //       </div>
 //     </div>
 //   );
 // }
 
-// /* ─── Mission card ──────────────────────────────────────────────────────────── */
 // function MissionCard() {
 //   return (
-//     <div className="relative w-[260px] overflow-hidden rounded-3xl shadow-2xl shadow-black/30 ring-1 ring-white/10">
-//       <img src={cloudImage} alt="Cloud architecture" className="h-[320px] w-full object-cover" />
-//       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-//       <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[9px] font-medium uppercase tracking-wider text-white backdrop-blur-sm">
-//         <span className="h-1.5 w-1.5 rounded-full bg-[#7ee787]" /> Intermediate · 60 min
+//     <div style={{ width: CARD_W, height: CARD_H, borderRadius: 16, overflow: "hidden", position: "relative", boxShadow: "0 20px 48px rgba(0,0,0,0.28)" }}>
+//       <img src={cloudImage} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+//       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)" }} />
+//       <div style={{ position: "absolute", top: 10, left: 10, display: "inline-flex", alignItems: "center", gap: 5, borderRadius: 999, background: "rgba(255,255,255,0.14)", padding: "4px 10px", backdropFilter: "blur(6px)" }}>
+//         <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#7ee787", display: "inline-block" }} />
+//         <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: "white" }}>Intermediate · 60 min</span>
 //       </div>
-//       <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-//         <h3 className="font-display text-[18px] font-semibold leading-[1.15]">Deploy a multi-tier app on GKE</h3>
-//         <Link to="/login" className="mt-3 inline-block rounded-lg bg-white/15 px-3 py-1.5 text-[11px] font-medium backdrop-blur-sm hover:bg-white/25 transition">
+//       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "14px 16px" }}>
+//         <div style={{ fontSize: 15, fontWeight: 600, color: "white", lineHeight: 1.25, marginBottom: 8 }}>Deploy a multi-tier app on GKE</div>
+//         <div style={{ display: "inline-block", borderRadius: 8, background: "rgba(255,255,255,0.14)", padding: "5px 11px", fontSize: 10.5, color: "white", backdropFilter: "blur(6px)" }}>
 //           Launch mission →
-//         </Link>
+//         </div>
 //       </div>
 //     </div>
 //   );
 // }
 
-// /* ─── Grade card ────────────────────────────────────────────────────────────── */
 // function GradeCard() {
 //   return (
-//     <div className="w-[230px] rounded-2xl bg-white p-5 shadow-2xl shadow-black/10 ring-1 ring-black/5">
-//       <div className="flex items-center justify-between">
-//         <h4 className="font-display text-[14px] font-semibold text-ink">Mission graded</h4>
-//         <span className="rounded-full bg-[#e8f5ee] px-2 py-0.5 text-[9px] font-bold tracking-wide text-[#1a7f3c]">PASS</span>
+//     <div style={{ width: CARD_W, height: CARD_H, borderRadius: 16, background: "white", padding: "18px 20px", boxShadow: "0 20px 48px rgba(0,0,0,0.10)", border: "1px solid rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+//       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//         <span style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>Mission graded</span>
+//         <span style={{ borderRadius: 999, background: "#e8f5ee", padding: "2px 9px", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.05em", color: "#1a7f3c" }}>PASS</span>
 //       </div>
-//       <div className="mt-4 space-y-3">
+//       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
 //         <div>
-//           <div className="flex items-center justify-between text-[12px] mb-1.5">
-//             <span className="text-foreground">Score</span>
-//             <span className="font-semibold text-ink">92 / 100</span>
+//           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
+//             <span style={{ color: "var(--foreground)" }}>Score</span>
+//             <span style={{ fontWeight: 600, color: "var(--ink)" }}>92 / 100</span>
 //           </div>
-//           <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-//             <div className="h-full w-[92%] rounded-full bg-primary" />
+//           <div style={{ height: 5, borderRadius: 999, background: "var(--muted)", overflow: "hidden" }}>
+//             <div style={{ width: "92%", height: "100%", borderRadius: 999, background: "var(--primary)" }} />
 //           </div>
 //         </div>
-//         <div className="flex items-center justify-between text-[12px]">
-//           <span className="text-foreground">Skill XP</span>
-//           <span className="font-semibold text-primary">+ 240 XP</span>
+//         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+//           <span style={{ color: "var(--foreground)" }}>Skill XP</span>
+//           <span style={{ fontWeight: 600, color: "var(--primary)" }}>+ 240 XP</span>
 //         </div>
-//         <div className="flex items-center justify-between text-[12px]">
-//           <span className="text-foreground">Next badge</span>
-//           <span className="font-medium text-ink">GKE Architect</span>
+//         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+//           <span style={{ color: "var(--foreground)" }}>Next badge</span>
+//           <span style={{ fontWeight: 500, color: "var(--ink)" }}>GKE Architect</span>
 //         </div>
 //       </div>
-//       <Link to="/login" className="mt-5 block w-full rounded-xl bg-ink py-2.5 text-center text-[12px] font-medium text-white hover:opacity-90 transition">
+//       <div style={{ borderRadius: 10, background: "var(--ink)", padding: "9px 0", textAlign: "center", fontSize: 11.5, fontWeight: 500, color: "white", cursor: "pointer" }}>
 //         View feedback
-//       </Link>
+//       </div>
 //     </div>
 //   );
 // }
 
-// /* ─── Hero ──────────────────────────────────────────────────────────────────── */
-// /*
-//   Layout (all measured in px at a ~1200px container):
-//   The line travels LEFT→RIGHT across the full width.
-//   Three pills sit ON the line at x positions: 20%, 50%, 80%
-//   The line Y = 80px from top of the hero canvas.
-
-//   Cards appear BELOW the line, centered under their pill:
-//   - Terminal: under pill 1 (left)
-//   - Mission:  under pill 2 (center)
-//   - Grade:    under pill 3 (right)
-
-//   SVG viewBox = "0 0 1000 90" (just the line + a bit of headroom)
-//   preserveAspectRatio = "none" so it stretches full width
-//   Path: horizontal line at y=70 with a small inbound curve from top-left
-// */
-
-// // Segment fractions where each pill sits on the line (0→1)
-// const PILL_FRACS = [0.20, 0.50, 0.80];
-
 // function Hero() {
-//   const [progress, setProgress] = useState(0); // 0–1, how far the line has drawn
-//   const containerRef = useRef<HTMLDivElement>(null);
-
-//   const DURATION = 2200; // ms for full line draw
+//   const [progress, setProgress] = useState(0);
+//   const DURATION = 2400;
 
 //   useEffect(() => {
 //     let raf: number;
-//     let start: number | null = null;
-
 //     const timeout = setTimeout(() => {
+//       let start: number | null = null;
 //       function tick(ts: number) {
 //         if (!start) start = ts;
 //         const p = Math.min((ts - start) / DURATION, 1);
-//         // ease-in-out cubic
 //         const eased = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
 //         setProgress(eased);
 //         if (p < 1) raf = requestAnimationFrame(tick);
 //       }
 //       raf = requestAnimationFrame(tick);
-//     }, 500);
-
+//     }, 600);
 //     return () => { clearTimeout(timeout); cancelAnimationFrame(raf); };
 //   }, []);
 
-//   // Which cards are revealed
-//   const show1 = progress >= PILL_FRACS[0];
-//   const show2 = progress >= PILL_FRACS[1];
-//   const show3 = progress >= PILL_FRACS[2];
-
-//   // SVG line geometry (viewBox 0 0 1000 100)
-//   // Line runs at y=68, from x=0 to x=1000
-//   // Small entry curve: starts at (0,20), curves down to (60,68), then horizontal
-//   const LINE_Y = 68;
-//   const PATH = `M 0 20 Q 0 ${LINE_Y} 50 ${LINE_Y} L 1000 ${LINE_Y}`;
-//   // Approximate arc length of this path
-//   const PATH_LEN = 1060;
+//   const show = PILL_FRACS.map((f) => progress >= f);
 //   const dashOffset = PATH_LEN * (1 - progress);
+//   const dotX = Math.min(progress * 1060, 1000);
+//   const dotY = progress < 0.07 ? 20 + (LINE_Y - 20) * (progress / 0.07) : LINE_Y;
 
-//   // Pill x positions in SVG coords (0–1000)
-//   const pillXs = PILL_FRACS.map((f) => f * 1000);
+//   /* The canvas height must fit: SVG area (120px) + pill (30px) + gap (16px) + card (CARD_H) + bottom padding */
+//   const CANVAS_H = 120 + 16 + CARD_H + 20; // ~406
 
-//   // Dot position along path as progress moves
-//   // Simple linear approximation: x = progress * 1000, y = LINE_Y (close enough after the curve)
-//   const dotX = Math.min(progress * 1050 - 50, 1000);
-//   const dotY = progress < 0.06 ? 20 + (LINE_Y - 20) * (progress / 0.06) : LINE_Y;
-
-//   // Card reveal style helper
-//   const cardStyle = (show: boolean, delay = 0): React.CSSProperties => ({
+//   const cardFade = (show: boolean, delay = 0): React.CSSProperties => ({
 //     opacity: show ? 1 : 0,
-//     transform: show ? "translateY(0px)" : "translateY(18px)",
-//     transition: `opacity 0.55s ease ${delay}ms, transform 0.55s cubic-bezier(0.34,1.4,0.64,1) ${delay}ms`,
+//     transform: show ? "translateY(0)" : "translateY(20px)",
+//     transition: `opacity 0.6s ease ${delay}ms, transform 0.6s cubic-bezier(0.34,1.4,0.64,1) ${delay}ms`,
 //   });
 
 //   return (
-//     <section className="relative mx-auto max-w-7xl overflow-hidden px-6 pb-28 pt-8">
+//     <section className="mx-auto max-w-7xl px-6 pb-28 pt-6">
 
-//       {/* ── Line + pills + cards canvas ───────────────────────── */}
-//       <div ref={containerRef} className="relative w-full" style={{ height: 580 }}>
+//       {/* ── Canvas: line + pills + cards ── */}
+//       <div style={{ position: "relative", width: "100%", height: CANVAS_H }}>
 
-//         {/* SVG line — stretches full width, fixed height */}
+//         {/* SVG occupies top 120px — the line lives here */}
 //         <svg
-//           className="absolute left-0 top-0 w-full"
-//           style={{ height: 100, overflow: "visible", pointerEvents: "none" }}
-//           viewBox="0 0 1000 100"
+//           style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 120, overflow: "visible", pointerEvents: "none" }}
+//           viewBox="0 0 1000 120"
 //           preserveAspectRatio="none"
 //           fill="none"
 //         >
 //           <defs>
-//             <linearGradient id="lg" x1="0%" y1="0%" x2="100%" y2="0%">
-//               <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.25" />
-//               <stop offset="60%" stopColor="var(--primary)" stopOpacity="0.7" />
+//             <linearGradient id="hg" x1="0%" y1="0%" x2="100%" y2="0%">
+//               <stop offset="0%"   stopColor="var(--primary)" stopOpacity="0.15" />
+//               <stop offset="50%"  stopColor="var(--primary)" stopOpacity="0.65" />
 //               <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.9" />
 //             </linearGradient>
 //           </defs>
-
-//           {/* Ghost full path (very faint) */}
-//           <path d={PATH} stroke="var(--border)" strokeWidth="1.5" />
-
-//           {/* Animated drawn line */}
-//           <path
-//             d={PATH}
-//             stroke="url(#lg)"
-//             strokeWidth="1.8"
-//             strokeLinecap="round"
-//             strokeDasharray={PATH_LEN}
-//             strokeDashoffset={dashOffset}
-//             style={{ transition: "stroke-dashoffset 16ms linear" }}
-//           />
-
-//           {/* Glowing dot at tip */}
-//           {progress > 0.02 && progress < 0.99 && (
+//           {/* Ghost path */}
+//           <path d={PATH_STR} stroke="var(--border)" strokeWidth="1.4" />
+//           {/* Animated path */}
+//           <path d={PATH_STR} stroke="url(#hg)" strokeWidth="2" strokeLinecap="round"
+//             strokeDasharray={PATH_LEN} strokeDashoffset={dashOffset} />
+//           {/* Glow dot */}
+//           {progress > 0.02 && progress < 0.995 && (
 //             <>
-//               <circle cx={dotX} cy={dotY} r="5" fill="var(--primary)" opacity="0.25" />
-//               <circle cx={dotX} cy={dotY} r="3" fill="var(--primary)" opacity="1" />
+//               <circle cx={dotX} cy={dotY} r="7" fill="var(--primary)" opacity="0.15" />
+//               <circle cx={dotX} cy={dotY} r="3.5" fill="var(--primary)" />
 //             </>
 //           )}
-
-//           {/* Pill connector ticks — small vertical tick marks on the line at pill positions */}
-//           {pillXs.map((px, i) => (
-//             <line
-//               key={i}
-//               x1={px} y1={LINE_Y - 10}
-//               x2={px} y2={LINE_Y + 10}
-//               stroke="var(--primary)"
-//               strokeWidth="1.5"
-//               opacity={progress >= PILL_FRACS[i] ? 0.6 : 0}
-//               style={{ transition: "opacity 0.3s ease" }}
+//           {/* Tick marks at each pill */}
+//           {PILL_FRACS.map((f, i) => (
+//             <line key={i}
+//               x1={f * 1000} y1={LINE_Y - 8} x2={f * 1000} y2={LINE_Y + 8}
+//               stroke="var(--primary)" strokeWidth="1.5"
+//               opacity={progress >= f ? 0.7 : 0}
+//               style={{ transition: "opacity 0.3s" }}
 //             />
 //           ))}
 //         </svg>
 
-//         {/* Pills — absolutely positioned over the line, centered at each pill x fraction */}
-//         {/* We use percentage left to match the SVG pill fractions */}
+//         {/* Pills — each centered at its fraction, vertically centered on the line (LINE_Y/120 * 120 = 80px from top of SVG) */}
+//         {/* Pills sit at top=80-14=66 to vertically center on line */}
 //         {[
-//           { label: "PROVISION ENV",     frac: PILL_FRACS[0], show: show1 },
-//           { label: "RECOMMEND MISSION", frac: PILL_FRACS[1], show: show2 },
-//           { label: "GRADE SUBMISSION",  frac: PILL_FRACS[2], show: show3 },
-//         ].map(({ label, frac, show }, i) => (
-//           <div
-//             key={label}
-//             className="absolute"
-//             style={{
-//               left: `${frac * 100}%`,
-//               top: 54, // line sits at ~68/100 * 100px = 68px; pill centers at ~54px
-//               transform: "translateX(-50%)",
-//               opacity: show ? 1 : 0,
-//               transition: `opacity 0.35s ease ${i * 60}ms, transform 0.35s ease ${i * 60}ms`,
-//             }}
-//           >
+//           { label: "PROVISION ENV",     frac: PILL_FRACS[0], show: show[0] },
+//           { label: "RECOMMEND MISSION", frac: PILL_FRACS[1], show: show[1] },
+//           { label: "GRADE SUBMISSION",  frac: PILL_FRACS[2], show: show[2] },
+//         ].map(({ label, frac, show: s }, i) => (
+//           <div key={label} style={{
+//             position: "absolute",
+//             left: `${frac * 100}%`,
+//             top: 66,                          /* vertically centre on line */
+//             transform: "translateX(-50%)",
+//             opacity: s ? 1 : 0,
+//             transition: `opacity 0.35s ease ${i * 80}ms`,
+//             zIndex: 2,
+//           }}>
 //             <Pill label={label} />
 //           </div>
 //         ))}
 
-//         {/* ── Cards — each centered under its pill, below the line ── */}
-
-//         {/* Card 1: Terminal — under pill 1 (20%) */}
-//         <div
-//           className="absolute"
-//           style={{
-//             left: `${PILL_FRACS[0] * 100}%`,
-//             top: 130,
+//         {/* Cards — each centered at same fraction, top = SVG height(120) + gap(16) */}
+//         {[
+//           { Card: TerminalCard, frac: PILL_FRACS[0], show: show[0] },
+//           { Card: MissionCard,  frac: PILL_FRACS[1], show: show[1] },
+//           { Card: GradeCard,    frac: PILL_FRACS[2], show: show[2] },
+//         ].map(({ Card, frac, show: s }, i) => (
+//           <div key={i} style={{
+//             position: "absolute",
+//             left: `${frac * 100}%`,
+//             top: 136,                          /* 120 SVG + 16px gap */
 //             transform: "translateX(-50%)",
-//             ...cardStyle(show1, 80),
-//           }}
-//         >
-//           <TerminalCard />
-//         </div>
-
-//         {/* Card 2: Mission — under pill 2 (50%) */}
-//         <div
-//           className="absolute"
-//           style={{
-//             left: `${PILL_FRACS[1] * 100}%`,
-//             top: 115,
-//             transform: "translateX(-50%)",
-//             ...cardStyle(show2, 80),
-//           }}
-//         >
-//           <MissionCard />
-//         </div>
-
-//         {/* Card 3: Grade — under pill 3 (80%) */}
-//         <div
-//           className="absolute"
-//           style={{
-//             left: `${PILL_FRACS[2] * 100}%`,
-//             top: 130,
-//             transform: "translateX(-50%)",
-//             ...cardStyle(show3, 80),
-//           }}
-//         >
-//           <GradeCard />
-//         </div>
+//             ...cardFade(s, 100),
+//           }}>
+//             <Card />
+//           </div>
+//         ))}
 //       </div>
 
-//       {/* ── Headline ─────────────────────────────────────────────── */}
-//       <div className="mt-0">
+//       {/* ── Headline ── */}
+//       <div className="mt-8">
 //         <h1 className="font-display text-[clamp(3rem,9vw,8.5rem)] font-medium leading-[0.92] tracking-[-0.04em] text-ink">
-//           Cloud skills that
-//           <br />ship to production
+//           Cloud skills that<br />ship to production
 //         </h1>
 //         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
 //           <p className="max-w-xl text-[17px] leading-relaxed text-foreground">
 //             CloudFlight is the AI-native training platform for engineering teams.
-//             Personalized missions on live GCP environments, automatic grading,
-//             and learner analytics that show exactly who is ready to ship — and who needs another rep.
+//             Personalised missions on live GCP environments, automatic grading,
+//             and learner analytics that show exactly who is ready to ship.
 //           </p>
 //           <div className="flex flex-wrap items-center gap-3">
-//             <Link to="/login" className="btn-primary">Start a free mission</Link>
+//             <Link to="/login" className="btn-primary">Start a mission</Link>
 //             <button className="btn-ghost inline-flex items-center gap-2">
 //               <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l9 5-9 5z" /></svg>
 //               Book a team demo
@@ -656,7 +291,174 @@
 //   );
 // }
 
-// /* ─── Tracks ─────────────────────────────────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    TRACK CARDS — Pokémon-style interactive flip cards
+// ══════════════════════════════════════════════════════════════════ */
+
+// const TRACK_META: Record<string, { color: string; accent: string; tier: string; missions: number; avg: number; foil: string }> = {
+//   compute:      { color: "#1a1f3a", accent: "#5B8EF0", tier: "CLOUD TIER I",   missions: 22, avg: 89, foil: "linear-gradient(135deg,#5B8EF0,#a78bfa,#5B8EF0)" },
+//   storage:      { color: "#1a2a1a", accent: "#34A853", tier: "CLOUD TIER I",   missions: 18, avg: 71, foil: "linear-gradient(135deg,#34A853,#6ee7b7,#34A853)" },
+//   networking:   { color: "#1a2535", accent: "#38bdf8", tier: "CLOUD TIER II",  missions: 20, avg: 86, foil: "linear-gradient(135deg,#38bdf8,#818cf8,#38bdf8)" },
+//   security:     { color: "#2a1a1a", accent: "#f87171", tier: "CLOUD TIER II",  missions: 24, avg: 93, foil: "linear-gradient(135deg,#f87171,#fbbf24,#f87171)" },
+//   devops:       { color: "#1e1a2a", accent: "#a78bfa", tier: "CLOUD TIER III", missions: 26, avg: 78, foil: "linear-gradient(135deg,#a78bfa,#f472b6,#a78bfa)" },
+//   architecture: { color: "#2a1e0a", accent: "#fbbf24", tier: "CLOUD TIER III", missions: 30, avg: 84, foil: "linear-gradient(135deg,#fbbf24,#f97316,#fbbf24)" },
+// };
+
+// const STAT_BARS = [
+//   { label: "Depth",    key: "missions" as const },
+//   { label: "Avg score",key: "avg"      as const },
+// ];
+
+// function TrackCard({ track }: { track: typeof learningTracks[0] }) {
+//   const meta = TRACK_META[track.id] ?? TRACK_META.compute;
+//   const [flipped, setFlipped] = useState(false);
+//   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+//   const [shine, setShine] = useState({ x: 50, y: 50 });
+//   const ref = useRef<HTMLDivElement>(null);
+
+//   function onMove(e: React.MouseEvent<HTMLDivElement>) {
+//     if (!ref.current) return;
+//     const r = ref.current.getBoundingClientRect();
+//     const x = ((e.clientX - r.left) / r.width  - 0.5) * 22;
+//     const y = ((e.clientY - r.top)  / r.height - 0.5) * -22;
+//     const sx = ((e.clientX - r.left) / r.width)  * 100;
+//     const sy = ((e.clientY - r.top)  / r.height) * 100;
+//     setTilt({ x, y });
+//     setShine({ x: sx, y: sy });
+//   }
+//   function onLeave() { setTilt({ x: 0, y: 0 }); setShine({ x: 50, y: 50 }); }
+
+//   const depthPct  = Math.round((meta.missions / 30) * 100);
+//   const scorePct  = meta.avg;
+
+//   return (
+//     <div ref={ref}
+//       style={{ perspective: 900, width: "100%", aspectRatio: "2.5/3.5", cursor: "pointer" }}
+//       onClick={() => setFlipped(f => !f)}
+//       onMouseMove={onMove}
+//       onMouseLeave={onLeave}
+//     >
+//       <div style={{
+//         width: "100%", height: "100%",
+//         position: "relative",
+//         transformStyle: "preserve-3d",
+//         transform: flipped
+//           ? `rotateY(180deg) rotateX(${tilt.y * 0.5}deg)`
+//           : `rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
+//         transition: flipped
+//           ? "transform 0.55s cubic-bezier(0.34,1.2,0.64,1)"
+//           : "transform 0.12s ease-out",
+//       }}>
+
+//         {/* ── FRONT ── */}
+//         <div style={{
+//           position: "absolute", inset: 0, backfaceVisibility: "hidden",
+//           borderRadius: 16, overflow: "hidden",
+//           background: meta.color,
+//           boxShadow: `0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08), 0 0 40px ${meta.accent}22`,
+//         }}>
+//           {/* Holographic foil overlay */}
+//           <div style={{
+//             position: "absolute", inset: 0, zIndex: 3, borderRadius: 16,
+//             background: `radial-gradient(ellipse at ${shine.x}% ${shine.y}%, ${meta.accent}28 0%, transparent 60%)`,
+//             mixBlendMode: "screen", pointerEvents: "none",
+//           }} />
+//           {/* Shimmer lines */}
+//           <div style={{
+//             position: "absolute", inset: 0, zIndex: 2, borderRadius: 16,
+//             background: `repeating-linear-gradient(110deg, transparent 0px, transparent 6px, ${meta.accent}09 6px, ${meta.accent}09 7px)`,
+//             pointerEvents: "none",
+//           }} />
+
+//           {/* Header */}
+//           <div style={{ padding: "14px 14px 10px", position: "relative", zIndex: 4 }}>
+//             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+//               <div>
+//                 <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.1em", textTransform: "uppercase", color: meta.accent, marginBottom: 4 }}>{meta.tier}</div>
+//                 <div style={{ fontSize: 18, fontWeight: 700, color: "white", letterSpacing: "-0.02em" }}>{track.name}</div>
+//               </div>
+//               <div style={{ fontSize: 28 }}>{track.icon}</div>
+//             </div>
+//           </div>
+
+//           {/* Image zone (tinted) */}
+//           <div style={{ margin: "0 10px", borderRadius: 10, overflow: "hidden", height: 110, position: "relative", zIndex: 4, background: `linear-gradient(135deg, ${meta.accent}33, ${meta.accent}11)` }}>
+//             <div style={{
+//               position: "absolute", inset: 0,
+//               display: "flex", alignItems: "center", justifyContent: "center",
+//               fontSize: 52, filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.4))",
+//             }}>{track.icon}</div>
+//             {/* Glow lines */}
+//             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 40, background: `linear-gradient(to top, ${meta.color}, transparent)` }} />
+//           </div>
+
+//           {/* Stats */}
+//           <div style={{ padding: "10px 14px 0", position: "relative", zIndex: 4 }}>
+//             <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>TRACK STATS</div>
+//             {[
+//               { label: "Depth",     pct: depthPct,  val: `${meta.missions} missions` },
+//               { label: "Avg Score", pct: scorePct,  val: `${meta.avg}%` },
+//             ].map(({ label, pct, val }) => (
+//               <div key={label} style={{ marginBottom: 7 }}>
+//                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}>
+//                   <span>{label}</span><span style={{ color: meta.accent, fontWeight: 600 }}>{val}</span>
+//                 </div>
+//                 <div style={{ height: 3, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
+//                   <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: meta.foil }} />
+//                 </div>
+//               </div>
+//             ))}
+//           </div>
+
+//           {/* Bottom badge */}
+//           <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 4 }}>
+//             <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.06em", color: "rgba(255,255,255,0.3)" }}>CLOUDFLIGHT · 2026</div>
+//             <div style={{ fontSize: 10, color: meta.accent, fontWeight: 600 }}>Flip for details →</div>
+//           </div>
+//         </div>
+
+//         {/* ── BACK ── */}
+//         <div style={{
+//           position: "absolute", inset: 0, backfaceVisibility: "hidden",
+//           transform: "rotateY(180deg)",
+//           borderRadius: 16, overflow: "hidden",
+//           background: "white",
+//           boxShadow: "0 24px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)",
+//           display: "flex", flexDirection: "column",
+//         }}>
+//           {/* Header stripe */}
+//           <div style={{ background: meta.color, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+//             <span style={{ fontSize: 22 }}>{track.icon}</span>
+//             <div>
+//               <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.08em", textTransform: "uppercase", color: meta.accent }}>{meta.tier}</div>
+//               <div style={{ fontSize: 16, fontWeight: 700, color: "white" }}>{track.name}</div>
+//             </div>
+//           </div>
+//           {/* Description */}
+//           <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+//             <p style={{ fontSize: 12.5, lineHeight: 1.6, color: "var(--foreground)" }}>{track.description}</p>
+//             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+//               {[
+//                 { label: "Missions",   val: `${meta.missions} labs` },
+//                 { label: "Avg score",  val: `${meta.avg}%` },
+//                 { label: "Level",      val: meta.tier.replace("CLOUD ", "") },
+//               ].map(({ label, val }) => (
+//                 <div key={label} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border)", paddingBottom: 6 }}>
+//                   <span style={{ fontSize: 11.5, color: "var(--foreground)" }}>{label}</span>
+//                   <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ink)" }}>{val}</span>
+//                 </div>
+//               ))}
+//             </div>
+//             <div style={{ borderRadius: 10, background: meta.accent, padding: "9px 0", textAlign: "center", fontSize: 12, fontWeight: 600, color: "white", marginTop: "auto", cursor: "pointer" }}>
+//               Explore track →
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
 // function Tracks() {
 //   return (
 //     <section id="tracks" className="mx-auto max-w-7xl px-6 py-24">
@@ -668,30 +470,290 @@
 //           </h2>
 //         </div>
 //         <p className="max-w-sm text-[15px] text-foreground">
-//           Every track ends with a capstone mission graded against the same rubric your hiring panel uses.
+//           Hover to preview · click to flip and explore each track.
 //         </p>
 //       </div>
-//       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-//         {learningTracks.map((t) => (
-//           <Link key={t.id} to="/login"
-//             className="group rounded-3xl border border-border bg-surface p-7 transition hover:border-primary/40 hover:bg-background">
-//             <div className="text-3xl">{t.icon}</div>
-//             <h3 className="mt-5 font-display text-[22px] font-semibold text-ink">{t.name}</h3>
-//             <p className="mt-2 text-[14px] leading-relaxed text-foreground">{t.description}</p>
-//             <div className="mono-label mt-6 inline-flex items-center gap-1.5 text-primary opacity-0 transition group-hover:opacity-100">
-//               Explore track →
-//             </div>
-//           </Link>
-//         ))}
+//       <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-6">
+//         {learningTracks.map((t) => <TrackCard key={t.id} track={t} />)}
 //       </div>
 //       <div className="mt-10 flex justify-center">
-//         <Link to="/login" className="btn-primary">View learner analytics</Link>
+//         <Link to="/login" className="btn-primary">View all missions</Link>
 //       </div>
 //     </section>
 //   );
 // }
 
-// /* ─── How it works ───────────────────────────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    DASHBOARD SHOWCASE — live-looking mini dashboard
+// ══════════════════════════════════════════════════════════════════ */
+
+// const ORBIT_TRACKS = [
+//   { label: "Compute",  pct: 89, color: "#5B8EF0", angle: 0   },
+//   { label: "Security", pct: 93, color: "#34A853", angle: 60  },
+//   { label: "Network",  pct: 86, color: "#38bdf8", angle: 120 },
+//   { label: "Storage",  pct: 71, color: "#f87171", angle: 180 },
+//   { label: "DevOps",   pct: 78, color: "#a78bfa", angle: 240 },
+//   { label: "Arch",     pct: 84, color: "#fbbf24", angle: 300 },
+// ];
+
+// function OrbitRing() {
+//   const [angle, setAngle] = useState(0);
+//   const rafRef = useRef<number>(0);
+//   const prevRef = useRef<number | null>(null);
+
+//   useEffect(() => {
+//     function tick(ts: number) {
+//       if (!prevRef.current) prevRef.current = ts;
+//       const dt = ts - prevRef.current;
+//       prevRef.current = ts;
+//       setAngle(a => (a + dt * 0.018) % 360);
+//       rafRef.current = requestAnimationFrame(tick);
+//     }
+//     rafRef.current = requestAnimationFrame(tick);
+//     return () => cancelAnimationFrame(rafRef.current);
+//   }, []);
+
+//   const R1 = 110, R2 = 160;
+//   const cx = 180, cy = 180;
+
+//   return (
+//     <div style={{ position: "relative", width: 360, height: 360, flexShrink: 0 }}>
+//       <svg width="360" height="360" viewBox="0 0 360 360" fill="none">
+//         {/* Outer ring */}
+//         <circle cx={cx} cy={cy} r={R2} stroke="rgba(74,108,247,0.12)" strokeWidth="1" />
+//         {/* Inner ring */}
+//         <circle cx={cx} cy={cy} r={R1} stroke="rgba(74,108,247,0.08)" strokeWidth="1" />
+//         {/* Spinning arc segment */}
+//         <circle cx={cx} cy={cy} r={R2} stroke="url(#arcGrad)" strokeWidth="2" strokeDasharray="80 920"
+//           strokeLinecap="round"
+//           style={{ transform: `rotate(${angle}deg)`, transformOrigin: `${cx}px ${cy}px` }} />
+//         <circle cx={cx} cy={cy} r={R1} stroke="url(#arcGrad2)" strokeWidth="1.5" strokeDasharray="50 640"
+//           strokeLinecap="round"
+//           style={{ transform: `rotate(${-angle * 0.6}deg)`, transformOrigin: `${cx}px ${cy}px` }} />
+//         <defs>
+//           <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+//             <stop offset="0%" stopColor="#4a6cf7" stopOpacity="0" />
+//             <stop offset="50%" stopColor="#4a6cf7" stopOpacity="1" />
+//             <stop offset="100%" stopColor="#4a6cf7" stopOpacity="0" />
+//           </linearGradient>
+//           <linearGradient id="arcGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+//             <stop offset="0%" stopColor="#a78bfa" stopOpacity="0" />
+//             <stop offset="50%" stopColor="#a78bfa" stopOpacity="0.8" />
+//             <stop offset="100%" stopColor="#a78bfa" stopOpacity="0" />
+//           </linearGradient>
+//         </defs>
+
+//         {/* Orbit dots — outer ring rotates slowly */}
+//         {ORBIT_TRACKS.map((t) => {
+//           const theta = ((t.angle + angle) * Math.PI) / 180;
+//           const x = cx + R2 * Math.cos(theta);
+//           const y = cy + R2 * Math.sin(theta);
+//           return (
+//             <g key={t.label}>
+//               <circle cx={x} cy={y} r="22" fill="white" stroke={t.color} strokeWidth="1.5"
+//                 style={{ filter: `drop-shadow(0 2px 8px ${t.color}55)` }} />
+//               <text x={x} y={y + 4} textAnchor="middle" fontSize="9" fontWeight="700" fill={t.color} fontFamily="var(--font-mono)">{t.pct}%</text>
+//               <text x={x} y={y + 14} textAnchor="middle" fontSize="7" fill="var(--foreground)" fontFamily="var(--font-mono)" letterSpacing="0.05em" textTransform="uppercase">{t.label}</text>
+//             </g>
+//           );
+//         })}
+//       </svg>
+
+//       {/* Centre stat */}
+//       <div style={{
+//         position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+//         alignItems: "center", justifyContent: "center", gap: 2,
+//       }}>
+//         <div style={{ fontFamily: "var(--font-display)", fontSize: 38, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.04em", lineHeight: 1 }}>84%</div>
+//         <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--foreground)" }}>Avg score</div>
+//         <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", color: "#16a34a", marginTop: 2 }}>↑ TOP 18%</div>
+//       </div>
+//     </div>
+//   );
+// }
+
+// function MiniBarChart() {
+//   const data = [
+//     { m: "Jan", v: 72 }, { m: "Feb", v: 75 }, { m: "Mar", v: 78 },
+//     { m: "Apr", v: 82 }, { m: "May", v: 87 }, { m: "Jun", v: 92 },
+//   ];
+//   const max = 100;
+//   return (
+//     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+//       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Score Momentum</div>
+//       <div style={{ display: "flex", alignItems: "flex-end", gap: 5, height: 52 }}>
+//         {data.map((d, i) => (
+//           <div key={d.m} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+//             <div style={{ width: "100%", height: `${(d.v / max) * 44}px`, borderRadius: "3px 3px 0 0", background: i === data.length - 1 ? "var(--primary)" : "var(--muted)", transition: "height 1s ease" }} />
+//             <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.42rem", color: i === data.length - 1 ? "var(--primary)" : "var(--muted-foreground)" }}>{d.m[0]}</span>
+//           </div>
+//         ))}
+//       </div>
+//     </div>
+//   );
+// }
+
+// function MiniGapBars() {
+//   const bars = [
+//     { label: "GCP Core",   curr: 85, prev: 60, color: "#4a6cf7" },
+//     { label: "Security",   curr: 93, prev: 75, color: "#34A853" },
+//     { label: "DevOps",     curr: 72, prev: 50, color: "#f87171" },
+//   ];
+//   return (
+//     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+//       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Skill Gap Analysis</div>
+//       {bars.map((b) => (
+//         <div key={b.label}>
+//           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, marginBottom: 4 }}>
+//             <span style={{ color: "var(--ink)", fontWeight: 500 }}>{b.label}</span>
+//             <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", color: b.color }}>{b.curr}%</span>
+//           </div>
+//           <div style={{ height: 4, borderRadius: 999, background: "var(--muted)", overflow: "hidden", position: "relative" }}>
+//             <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${b.prev}%`, borderRadius: 999, background: "rgba(0,0,0,0.1)" }} />
+//             <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: `${b.curr}%`, borderRadius: 999, background: b.color }} />
+//           </div>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+
+// function DashboardShowcase() {
+//   return (
+//     <section className="border-y border-border bg-surface py-24">
+//       <div className="mx-auto max-w-7xl px-6">
+//         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-center">
+
+//           {/* Left: copy */}
+//           <div>
+//             <div className="mono-label mb-3">LIVE ANALYTICS DASHBOARD</div>
+//             <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
+//               Every metric tells you<br />what to do next.
+//             </h2>
+//             <p className="mt-5 text-[16px] leading-relaxed text-foreground max-w-md">
+//               Not just scores — skill gaps, momentum curves, proficiency targets, and AI-ranked mission queues. Your engineers always know what to work on and why.
+//             </p>
+//             <div className="mt-8 flex flex-wrap gap-3">
+//               <Link to="/login" className="btn-primary">See your dashboard</Link>
+//               <Link to="/login" className="btn-ghost">View sample report</Link>
+//             </div>
+//             {/* Bullet points */}
+//             <div className="mt-8 space-y-3">
+//               {[
+//                 "Skill gap bars show before vs. after — not vanity metrics",
+//                 "Score momentum tracked month-over-month with peer percentile",
+//                 "AI mission queue ranked by impact on your weakest skills",
+//               ].map((t) => (
+//                 <div key={t} className="flex items-start gap-2.5">
+//                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mt-0.5 shrink-0" stroke="var(--primary)" strokeWidth="2.5">
+//                     <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
+//                   </svg>
+//                   <span className="text-[14px] text-foreground">{t}</span>
+//                 </div>
+//               ))}
+//             </div>
+//           </div>
+
+//           {/* Right: mini dashboard mockup */}
+//           <div style={{ position: "relative" }}>
+//             {/* Outer glow */}
+//             <div style={{ position: "absolute", inset: -20, borderRadius: 32, background: "radial-gradient(ellipse at 60% 40%, rgba(74,108,247,0.08), transparent 70%)", pointerEvents: "none" }} />
+
+//             <div style={{
+//               borderRadius: 20, border: "1px solid var(--border)", background: "var(--background)",
+//               overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.10)",
+//               position: "relative",
+//             }}>
+//               {/* Dashboard topbar */}
+//               <div style={{ borderBottom: "1px solid var(--border)", padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+//                   <svg width="16" height="16" viewBox="0 0 28 28" fill="none"><path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" /></svg>
+//                   <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>PROPEL</span>
+//                 </div>
+//                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+//                   <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "white", fontWeight: 700 }}>AJ</div>
+//                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.05em", color: "var(--foreground)" }}>ALEX JOHNSON</span>
+//                 </div>
+//               </div>
+
+//               <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
+//                 {/* Top metric row */}
+//                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+//                   {[
+//                     { label: "Success rate", val: "89%",  delta: "↑ 5%",   up: true  },
+//                     { label: "Missions done", val: "28",  delta: "+2 wk",   up: true  },
+//                     { label: "Weakest track", val: "Storage", delta: "71%", up: false },
+//                   ].map((m) => (
+//                     <div key={m.label} style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "10px 12px" }}>
+//                       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--muted-foreground)", marginBottom: 4 }}>{m.label}</div>
+//                       <div style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.03em", lineHeight: 1 }}>{m.val}</div>
+//                       <div style={{ fontSize: 9, marginTop: 4, color: m.up ? "#16a34a" : "#dc2626", fontFamily: "var(--font-mono)" }}>{m.delta}</div>
+//                     </div>
+//                   ))}
+//                 </div>
+
+//                 {/* Bottom two panels */}
+//                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+//                   <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "12px 14px" }}>
+//                     <MiniBarChart />
+//                   </div>
+//                   <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "12px 14px" }}>
+//                     <MiniGapBars />
+//                   </div>
+//                 </div>
+
+//                 {/* AI recommendation row */}
+//                 <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+//                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+//                     <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(74,108,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+//                       <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--primary)"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z" /></svg>
+//                     </div>
+//                     <div>
+//                       <div style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ink)" }}>CI/CD Pipeline with Cloud Build</div>
+//                       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", color: "var(--foreground)", marginTop: 1 }}>AI PICK · closes DevOps gap</div>
+//                     </div>
+//                   </div>
+//                   <div style={{ borderRadius: 8, background: "var(--primary)", padding: "5px 12px", fontSize: 10.5, fontWeight: 600, color: "white", whiteSpace: "nowrap" }}>Start →</div>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /* ══════════════════════════════════════════════════════════════════
+//    ORBIT SECTION — learner community
+// ══════════════════════════════════════════════════════════════════ */
+// function OrbitSection() {
+//   return (
+//     <section className="mx-auto max-w-7xl px-6 py-24">
+//       <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-center">
+//         <div>
+//           <div className="mono-label mb-3">LEARNER NETWORK</div>
+//           <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
+//             6 tracks.<br />Every skill in orbit.
+//           </h2>
+//           <p className="mt-5 max-w-md text-[16px] leading-relaxed text-foreground">
+//             Every track is live-monitored. Your weakest skill pulls the next mission. Your strongest skill earns the next badge. The engine never stops optimising.
+//           </p>
+//           <div className="mt-8 flex flex-wrap gap-3">
+//             <Link to="/login" className="btn-primary">Start your orbit</Link>
+//           </div>
+//         </div>
+//         <div className="flex justify-center">
+//           <OrbitRing />
+//         </div>
+//       </div>
+//     </section>
+//   );
+// }
+
+// /* ══════════════════════════════════════════════════════════════════
+//    HOW IT WORKS
+// ══════════════════════════════════════════════════════════════════ */
 // function HowItWorks() {
 //   const steps = [
 //     { n: "01", title: "We profile your engineers", body: "A 10-minute baseline mission scores each learner across the six tracks. No multiple choice — actual cloud work." },
@@ -722,7 +784,9 @@
 //   );
 // }
 
-// /* ─── Teams stats ────────────────────────────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    STATS / TEAMS
+// ══════════════════════════════════════════════════════════════════ */
 // function Teams() {
 //   const stats = [
 //     { value: "3.4×",  label: "faster onboarding for cloud-new hires" },
@@ -744,18 +808,19 @@
 //   );
 // }
 
-// /* ─── CTA ─────────────────────────────────────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    CTA + FOOTER
+// ══════════════════════════════════════════════════════════════════ */
 // function CTA() {
 //   return (
 //     <section className="mx-auto max-w-7xl px-6 pb-24">
 //       <div className="rounded-[2rem] bg-ink p-12 text-white md:p-16">
 //         <h2 className="max-w-3xl font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em]">
-//           Stop teaching cloud with slides.
-//           Start grading on real infrastructure.
+//           Stop teaching cloud with slides.<br />Start grading on real infrastructure.
 //         </h2>
 //         <div className="mt-10 flex flex-wrap items-center gap-3">
 //           <Link to="/login" className="rounded-full bg-primary px-6 py-3.5 text-[15px] font-medium text-white hover:opacity-90">
-//             Start a free mission
+//             Start a mission
 //           </Link>
 //           <button className="rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-medium hover:bg-white/5">
 //             Book a team demo
@@ -765,8 +830,6 @@
 //     </section>
 //   );
 // }
-
-// /* ─── Footer ──────────────────────────────────────────────────────────────────── */
 // function Footer() {
 //   return (
 //     <footer className="mx-auto max-w-7xl border-t border-border px-6 py-10">
@@ -778,13 +841,17 @@
 //   );
 // }
 
-// /* ─── Page ────────────────────────────────────────────────────────────────────── */
+// /* ══════════════════════════════════════════════════════════════════
+//    PAGE
+// ══════════════════════════════════════════════════════════════════ */
 // function Landing() {
 //   return (
 //     <main className="min-h-screen bg-background text-foreground">
 //       <Nav />
 //       <Hero />
 //       <Tracks />
+//       <DashboardShowcase />
+//       <OrbitSection />
 //       <HowItWorks />
 //       <Teams />
 //       <CTA />
@@ -794,10 +861,14 @@
 // }
 
 
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import cloudImage from "@/assets/cloud-arch.jpg";
 import { learningTracks, trackRows } from "../data/mockData";
 import { useEffect, useRef, useState } from "react";
+import {
+  Cpu, Database, Wifi, Lock, Rocket, Layout,
+} from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -818,7 +889,7 @@ function Logo() {
       <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
         <path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" />
       </svg>
-      <span className="text-xl font-semibold tracking-tight text-ink">cloudflight</span>
+      <span className="text-xl font-semibold tracking-tight text-ink">PROPEL</span>
     </div>
   );
 }
@@ -833,25 +904,24 @@ function Nav() {
       </nav>
       <div className="flex items-center gap-5">
         <Link to="/login" className="hidden text-[15px] text-foreground hover:opacity-70 md:inline">Sign in</Link>
-        <Link to="/login" className="btn-primary">Start free mission</Link>
+        <Link to="/login" className="btn-primary">Start mission</Link>
       </div>
     </header>
   );
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   HERO — animated line + three cards perfectly aligned
+   HERO
 ══════════════════════════════════════════════════════════════════ */
+const CARD_W = 280;
+const CARD_H = 210;
 
-/* Card dimensions — all identical so they sit flush below the line */
-const CARD_W = 300;   // px
-const CARD_H = 220;   // px (uniform)
+// FIX: shifted fracs so leftmost card doesn't bleed off-screen
+// At frac=0.18, card center is at 18% — with card width 280px on ~1200px container,
+// leftmost edge = 18%*1200 - 140 = 76px, safe.
+const PILL_FRACS = [0.20, 0.50, 0.80];
 
-/* Where each pill sits as a fraction of the container width */
-const PILL_FRACS = [0.16, 0.50, 0.84];
-
-/* Line geometry (SVG viewBox 0 0 1000 120) */
-const LINE_Y   = 80;   // y where the horizontal line runs
+const LINE_Y   = 80;
 const PATH_STR = `M 0 20 C 0 ${LINE_Y} 30 ${LINE_Y} 60 ${LINE_Y} L 1000 ${LINE_Y}`;
 const PATH_LEN = 1060;
 
@@ -973,8 +1043,7 @@ function Hero() {
   const dotX = Math.min(progress * 1060, 1000);
   const dotY = progress < 0.07 ? 20 + (LINE_Y - 20) * (progress / 0.07) : LINE_Y;
 
-  /* The canvas height must fit: SVG area (120px) + pill (30px) + gap (16px) + card (CARD_H) + bottom padding */
-  const CANVAS_H = 120 + 16 + CARD_H + 20; // ~406
+  const CANVAS_H = 120 + 16 + CARD_H + 20;
 
   const cardFade = (show: boolean, delay = 0): React.CSSProperties => ({
     opacity: show ? 1 : 0,
@@ -984,11 +1053,7 @@ function Hero() {
 
   return (
     <section className="mx-auto max-w-7xl px-6 pb-28 pt-6">
-
-      {/* ── Canvas: line + pills + cards ── */}
       <div style={{ position: "relative", width: "100%", height: CANVAS_H }}>
-
-        {/* SVG occupies top 120px — the line lives here */}
         <svg
           style={{ position: "absolute", top: 0, left: 0, width: "100%", height: 120, overflow: "visible", pointerEvents: "none" }}
           viewBox="0 0 1000 120"
@@ -1002,19 +1067,15 @@ function Hero() {
               <stop offset="100%" stopColor="var(--primary)" stopOpacity="0.9" />
             </linearGradient>
           </defs>
-          {/* Ghost path */}
           <path d={PATH_STR} stroke="var(--border)" strokeWidth="1.4" />
-          {/* Animated path */}
           <path d={PATH_STR} stroke="url(#hg)" strokeWidth="2" strokeLinecap="round"
             strokeDasharray={PATH_LEN} strokeDashoffset={dashOffset} />
-          {/* Glow dot */}
           {progress > 0.02 && progress < 0.995 && (
             <>
               <circle cx={dotX} cy={dotY} r="7" fill="var(--primary)" opacity="0.15" />
               <circle cx={dotX} cy={dotY} r="3.5" fill="var(--primary)" />
             </>
           )}
-          {/* Tick marks at each pill */}
           {PILL_FRACS.map((f, i) => (
             <line key={i}
               x1={f * 1000} y1={LINE_Y - 8} x2={f * 1000} y2={LINE_Y + 8}
@@ -1025,8 +1086,6 @@ function Hero() {
           ))}
         </svg>
 
-        {/* Pills — each centered at its fraction, vertically centered on the line (LINE_Y/120 * 120 = 80px from top of SVG) */}
-        {/* Pills sit at top=80-14=66 to vertically center on line */}
         {[
           { label: "PROVISION ENV",     frac: PILL_FRACS[0], show: show[0] },
           { label: "RECOMMEND MISSION", frac: PILL_FRACS[1], show: show[1] },
@@ -1035,7 +1094,7 @@ function Hero() {
           <div key={label} style={{
             position: "absolute",
             left: `${frac * 100}%`,
-            top: 66,                          /* vertically centre on line */
+            top: 66,
             transform: "translateX(-50%)",
             opacity: s ? 1 : 0,
             transition: `opacity 0.35s ease ${i * 80}ms`,
@@ -1045,7 +1104,6 @@ function Hero() {
           </div>
         ))}
 
-        {/* Cards — each centered at same fraction, top = SVG height(120) + gap(16) */}
         {[
           { Card: TerminalCard, frac: PILL_FRACS[0], show: show[0] },
           { Card: MissionCard,  frac: PILL_FRACS[1], show: show[1] },
@@ -1054,7 +1112,7 @@ function Hero() {
           <div key={i} style={{
             position: "absolute",
             left: `${frac * 100}%`,
-            top: 136,                          /* 120 SVG + 16px gap */
+            top: 136,
             transform: "translateX(-50%)",
             ...cardFade(s, 100),
           }}>
@@ -1063,7 +1121,6 @@ function Hero() {
         ))}
       </div>
 
-      {/* ── Headline ── */}
       <div className="mt-8">
         <h1 className="font-display text-[clamp(3rem,9vw,8.5rem)] font-medium leading-[0.92] tracking-[-0.04em] text-ink">
           Cloud skills that<br />ship to production
@@ -1075,7 +1132,7 @@ function Hero() {
             and learner analytics that show exactly who is ready to ship.
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <Link to="/login" className="btn-primary">Start a free mission</Link>
+            <Link to="/login" className="btn-primary">Start a mission</Link>
             <button className="btn-ghost inline-flex items-center gap-2">
               <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1l9 5-9 5z" /></svg>
               Book a team demo
@@ -1088,168 +1145,143 @@ function Hero() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   TRACK CARDS — Pokémon-style interactive flip cards
+   TRACK CARDS — clean, minimal, professional
 ══════════════════════════════════════════════════════════════════ */
 
-const TRACK_META: Record<string, { color: string; accent: string; tier: string; missions: number; avg: number; foil: string }> = {
-  compute:      { color: "#1a1f3a", accent: "#5B8EF0", tier: "CLOUD TIER I",   missions: 22, avg: 89, foil: "linear-gradient(135deg,#5B8EF0,#a78bfa,#5B8EF0)" },
-  storage:      { color: "#1a2a1a", accent: "#34A853", tier: "CLOUD TIER I",   missions: 18, avg: 71, foil: "linear-gradient(135deg,#34A853,#6ee7b7,#34A853)" },
-  networking:   { color: "#1a2535", accent: "#38bdf8", tier: "CLOUD TIER II",  missions: 20, avg: 86, foil: "linear-gradient(135deg,#38bdf8,#818cf8,#38bdf8)" },
-  security:     { color: "#2a1a1a", accent: "#f87171", tier: "CLOUD TIER II",  missions: 24, avg: 93, foil: "linear-gradient(135deg,#f87171,#fbbf24,#f87171)" },
-  devops:       { color: "#1e1a2a", accent: "#a78bfa", tier: "CLOUD TIER III", missions: 26, avg: 78, foil: "linear-gradient(135deg,#a78bfa,#f472b6,#a78bfa)" },
-  architecture: { color: "#2a1e0a", accent: "#fbbf24", tier: "CLOUD TIER III", missions: 30, avg: 84, foil: "linear-gradient(135deg,#fbbf24,#f97316,#fbbf24)" },
+const TRACK_ICONS_LUCIDE: Record<string, React.ReactNode> = {
+  compute:      <Cpu      strokeWidth={1.5} />,
+  storage:      <Database strokeWidth={1.5} />,
+  networking:   <Wifi     strokeWidth={1.5} />,
+  security:     <Lock     strokeWidth={1.5} />,
+  devops:       <Rocket   strokeWidth={1.5} />,
+  architecture: <Layout   strokeWidth={1.5} />,
 };
 
-const STAT_BARS = [
-  { label: "Depth",    key: "missions" as const },
-  { label: "Avg score",key: "avg"      as const },
-];
+const TRACK_THEME: Record<string, {
+  bg: string; border: string; iconBg: string; iconColor: string;
+  accent: string; labelColor: string; tier: string; missions: number; avg: number;
+}> = {
+  compute:      { bg: "#f0f4ff", border: "#c7d7fc", iconBg: "#dbe6ff", iconColor: "#3b6ef8", accent: "#3b6ef8", labelColor: "#3b6ef8", tier: "Tier I",   missions: 22, avg: 89 },
+  storage:      { bg: "#f0faf4", border: "#b9eecf", iconBg: "#d4f5e2", iconColor: "#1e8a4a", accent: "#1e8a4a", labelColor: "#1e8a4a", tier: "Tier I",   missions: 18, avg: 71 },
+  networking:   { bg: "#f0faff", border: "#b9e6fa", iconBg: "#d0f0fc", iconColor: "#0891b2", accent: "#0891b2", labelColor: "#0891b2", tier: "Tier II",  missions: 20, avg: 86 },
+  security:     { bg: "#fff4f4", border: "#fccfcf", iconBg: "#ffe3e3", iconColor: "#dc2626", accent: "#dc2626", labelColor: "#dc2626", tier: "Tier II",  missions: 24, avg: 93 },
+  devops:       { bg: "#f7f0ff", border: "#dac5fc", iconBg: "#e8d5ff", iconColor: "#7c3aed", accent: "#7c3aed", labelColor: "#7c3aed", tier: "Tier III", missions: 26, avg: 78 },
+  architecture: { bg: "#fffbf0", border: "#f5dfa0", iconBg: "#fef0c0", iconColor: "#b45309", accent: "#b45309", labelColor: "#b45309", tier: "Tier III", missions: 30, avg: 84 },
+};
 
 function TrackCard({ track }: { track: typeof learningTracks[0] }) {
-  const meta = TRACK_META[track.id] ?? TRACK_META.compute;
-  const [flipped, setFlipped] = useState(false);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [shine, setShine] = useState({ x: 50, y: 50 });
-  const ref = useRef<HTMLDivElement>(null);
-
-  function onMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (!ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const x = ((e.clientX - r.left) / r.width  - 0.5) * 22;
-    const y = ((e.clientY - r.top)  / r.height - 0.5) * -22;
-    const sx = ((e.clientX - r.left) / r.width)  * 100;
-    const sy = ((e.clientY - r.top)  / r.height) * 100;
-    setTilt({ x, y });
-    setShine({ x: sx, y: sy });
-  }
-  function onLeave() { setTilt({ x: 0, y: 0 }); setShine({ x: 50, y: 50 }); }
-
-  const depthPct  = Math.round((meta.missions / 30) * 100);
-  const scorePct  = meta.avg;
+  const theme = TRACK_THEME[track.id] ?? TRACK_THEME.compute;
+  const [hovered, setHovered] = useState(false);
 
   return (
-    <div ref={ref}
-      style={{ perspective: 900, width: "100%", aspectRatio: "2.5/3.5", cursor: "pointer" }}
-      onClick={() => setFlipped(f => !f)}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: 20,
+        border: `1px solid ${hovered ? theme.accent : theme.border}`,
+        background: hovered ? theme.bg : "var(--background)",
+        padding: "24px 22px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 0,
+        cursor: "pointer",
+        transition: "all 0.22s ease",
+        transform: hovered ? "translateY(-3px)" : "translateY(0)",
+        boxShadow: hovered
+          ? `0 12px 32px rgba(0,0,0,0.08), 0 0 0 1px ${theme.accent}22`
+          : "0 1px 4px rgba(0,0,0,0.04)",
+      }}
     >
+      {/* Tier label */}
       <div style={{
-        width: "100%", height: "100%",
-        position: "relative",
-        transformStyle: "preserve-3d",
-        transform: flipped
-          ? `rotateY(180deg) rotateX(${tilt.y * 0.5}deg)`
-          : `rotateX(${tilt.y}deg) rotateY(${tilt.x}deg)`,
-        transition: flipped
-          ? "transform 0.55s cubic-bezier(0.34,1.2,0.64,1)"
-          : "transform 0.12s ease-out",
+        fontFamily: "var(--font-mono)",
+        fontSize: "0.5rem",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        color: theme.labelColor,
+        marginBottom: 14,
+        opacity: 0.8,
       }}>
+        {theme.tier}
+      </div>
 
-        {/* ── FRONT ── */}
-        <div style={{
-          position: "absolute", inset: 0, backfaceVisibility: "hidden",
-          borderRadius: 16, overflow: "hidden",
-          background: meta.color,
-          boxShadow: `0 24px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08), 0 0 40px ${meta.accent}22`,
-        }}>
-          {/* Holographic foil overlay */}
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 3, borderRadius: 16,
-            background: `radial-gradient(ellipse at ${shine.x}% ${shine.y}%, ${meta.accent}28 0%, transparent 60%)`,
-            mixBlendMode: "screen", pointerEvents: "none",
-          }} />
-          {/* Shimmer lines */}
-          <div style={{
-            position: "absolute", inset: 0, zIndex: 2, borderRadius: 16,
-            background: `repeating-linear-gradient(110deg, transparent 0px, transparent 6px, ${meta.accent}09 6px, ${meta.accent}09 7px)`,
-            pointerEvents: "none",
-          }} />
-
-          {/* Header */}
-          <div style={{ padding: "14px 14px 10px", position: "relative", zIndex: 4 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <div>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.1em", textTransform: "uppercase", color: meta.accent, marginBottom: 4 }}>{meta.tier}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "white", letterSpacing: "-0.02em" }}>{track.name}</div>
-              </div>
-              <div style={{ fontSize: 28 }}>{track.icon}</div>
-            </div>
-          </div>
-
-          {/* Image zone (tinted) */}
-          <div style={{ margin: "0 10px", borderRadius: 10, overflow: "hidden", height: 110, position: "relative", zIndex: 4, background: `linear-gradient(135deg, ${meta.accent}33, ${meta.accent}11)` }}>
-            <div style={{
-              position: "absolute", inset: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 52, filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.4))",
-            }}>{track.icon}</div>
-            {/* Glow lines */}
-            <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 40, background: `linear-gradient(to top, ${meta.color}, transparent)` }} />
-          </div>
-
-          {/* Stats */}
-          <div style={{ padding: "10px 14px 0", position: "relative", zIndex: 4 }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>TRACK STATS</div>
-            {[
-              { label: "Depth",     pct: depthPct,  val: `${meta.missions} missions` },
-              { label: "Avg Score", pct: scorePct,  val: `${meta.avg}%` },
-            ].map(({ label, pct, val }) => (
-              <div key={label} style={{ marginBottom: 7 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "rgba(255,255,255,0.6)", marginBottom: 3 }}>
-                  <span>{label}</span><span style={{ color: meta.accent, fontWeight: 600 }}>{val}</span>
-                </div>
-                <div style={{ height: 3, borderRadius: 999, background: "rgba(255,255,255,0.1)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: meta.foil }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom badge */}
-          <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative", zIndex: 4 }}>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 9, letterSpacing: "0.06em", color: "rgba(255,255,255,0.3)" }}>CLOUDFLIGHT · 2026</div>
-            <div style={{ fontSize: 10, color: meta.accent, fontWeight: 600 }}>Flip for details →</div>
-          </div>
+      {/* Icon */}
+      <div style={{
+        width: 44,
+        height: 44,
+        borderRadius: 12,
+        background: theme.iconBg,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: theme.iconColor,
+        marginBottom: 16,
+        transition: "transform 0.22s ease",
+        transform: hovered ? "scale(1.08)" : "scale(1)",
+      }}>
+        <div style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          {TRACK_ICONS_LUCIDE[track.id]}
         </div>
+      </div>
 
-        {/* ── BACK ── */}
-        <div style={{
-          position: "absolute", inset: 0, backfaceVisibility: "hidden",
-          transform: "rotateY(180deg)",
-          borderRadius: 16, overflow: "hidden",
-          background: "white",
-          boxShadow: "0 24px 60px rgba(0,0,0,0.22), 0 0 0 1px rgba(0,0,0,0.06)",
-          display: "flex", flexDirection: "column",
-        }}>
-          {/* Header stripe */}
-          <div style={{ background: meta.color, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 22 }}>{track.icon}</span>
-            <div>
-              <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", letterSpacing: "0.08em", textTransform: "uppercase", color: meta.accent }}>{meta.tier}</div>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "white" }}>{track.name}</div>
-            </div>
-          </div>
-          {/* Description */}
-          <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
-            <p style={{ fontSize: 12.5, lineHeight: 1.6, color: "var(--foreground)" }}>{track.description}</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {[
-                { label: "Missions",   val: `${meta.missions} labs` },
-                { label: "Avg score",  val: `${meta.avg}%` },
-                { label: "Level",      val: meta.tier.replace("CLOUD ", "") },
-              ].map(({ label, val }) => (
-                <div key={label} style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--border)", paddingBottom: 6 }}>
-                  <span style={{ fontSize: 11.5, color: "var(--foreground)" }}>{label}</span>
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "var(--ink)" }}>{val}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ borderRadius: 10, background: meta.accent, padding: "9px 0", textAlign: "center", fontSize: 12, fontWeight: 600, color: "white", marginTop: "auto", cursor: "pointer" }}>
-              Explore track →
-            </div>
-          </div>
+      {/* Name */}
+      <div style={{
+        fontSize: 16,
+        fontWeight: 650,
+        color: "var(--ink)",
+        letterSpacing: "-0.02em",
+        marginBottom: 6,
+      }}>
+        {track.name}
+      </div>
+
+      {/* Description */}
+      <div style={{
+        fontSize: 12,
+        color: "var(--foreground)",
+        lineHeight: 1.55,
+        marginBottom: 20,
+        flex: 1,
+      }}>
+        {track.description}
+      </div>
+
+      {/* Footer stats row */}
+      <div style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        paddingTop: 14,
+        borderTop: `1px solid ${theme.border}`,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: theme.accent,
+          }} />
+          <span style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: "0.5rem",
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--foreground)",
+          }}>
+            {theme.missions} missions
+          </span>
         </div>
+        <span style={{
+          fontFamily: "var(--font-mono)",
+          fontSize: "0.5rem",
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: theme.accent,
+          fontWeight: 600,
+        }}>
+          {theme.avg}% avg
+        </span>
       </div>
     </div>
   );
@@ -1266,10 +1298,10 @@ function Tracks() {
           </h2>
         </div>
         <p className="max-w-sm text-[15px] text-foreground">
-          Hover to preview · click to flip and explore each track.
+          Hover to preview · click to explore each track.
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {learningTracks.map((t) => <TrackCard key={t.id} track={t} />)}
       </div>
       <div className="mt-10 flex justify-center">
@@ -1280,9 +1312,8 @@ function Tracks() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   DASHBOARD SHOWCASE — live-looking mini dashboard
+   DASHBOARD SHOWCASE
 ══════════════════════════════════════════════════════════════════ */
-
 const ORBIT_TRACKS = [
   { label: "Compute",  pct: 89, color: "#5B8EF0", angle: 0   },
   { label: "Security", pct: 93, color: "#34A853", angle: 60  },
@@ -1315,11 +1346,8 @@ function OrbitRing() {
   return (
     <div style={{ position: "relative", width: 360, height: 360, flexShrink: 0 }}>
       <svg width="360" height="360" viewBox="0 0 360 360" fill="none">
-        {/* Outer ring */}
         <circle cx={cx} cy={cy} r={R2} stroke="rgba(74,108,247,0.12)" strokeWidth="1" />
-        {/* Inner ring */}
         <circle cx={cx} cy={cy} r={R1} stroke="rgba(74,108,247,0.08)" strokeWidth="1" />
-        {/* Spinning arc segment */}
         <circle cx={cx} cy={cy} r={R2} stroke="url(#arcGrad)" strokeWidth="2" strokeDasharray="80 920"
           strokeLinecap="round"
           style={{ transform: `rotate(${angle}deg)`, transformOrigin: `${cx}px ${cy}px` }} />
@@ -1338,8 +1366,6 @@ function OrbitRing() {
             <stop offset="100%" stopColor="#a78bfa" stopOpacity="0" />
           </linearGradient>
         </defs>
-
-        {/* Orbit dots — outer ring rotates slowly */}
         {ORBIT_TRACKS.map((t) => {
           const theta = ((t.angle + angle) * Math.PI) / 180;
           const x = cx + R2 * Math.cos(theta);
@@ -1349,17 +1375,12 @@ function OrbitRing() {
               <circle cx={x} cy={y} r="22" fill="white" stroke={t.color} strokeWidth="1.5"
                 style={{ filter: `drop-shadow(0 2px 8px ${t.color}55)` }} />
               <text x={x} y={y + 4} textAnchor="middle" fontSize="9" fontWeight="700" fill={t.color} fontFamily="var(--font-mono)">{t.pct}%</text>
-              <text x={x} y={y + 14} textAnchor="middle" fontSize="7" fill="var(--foreground)" fontFamily="var(--font-mono)" letterSpacing="0.05em" textTransform="uppercase">{t.label}</text>
+              <text x={x} y={y + 14} textAnchor="middle" fontSize="7" fill="var(--foreground)" fontFamily="var(--font-mono)" letterSpacing="0.05em">{t.label}</text>
             </g>
           );
         })}
       </svg>
-
-      {/* Centre stat */}
-      <div style={{
-        position: "absolute", inset: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center", gap: 2,
-      }}>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2 }}>
         <div style={{ fontFamily: "var(--font-display)", fontSize: 38, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.04em", lineHeight: 1 }}>84%</div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.55rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--foreground)" }}>Avg score</div>
         <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.5rem", color: "#16a34a", marginTop: 2 }}>↑ TOP 18%</div>
@@ -1373,14 +1394,13 @@ function MiniBarChart() {
     { m: "Jan", v: 72 }, { m: "Feb", v: 75 }, { m: "Mar", v: 78 },
     { m: "Apr", v: 82 }, { m: "May", v: 87 }, { m: "Jun", v: 92 },
   ];
-  const max = 100;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>Score Momentum</div>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 5, height: 52 }}>
         {data.map((d, i) => (
           <div key={d.m} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
-            <div style={{ width: "100%", height: `${(d.v / max) * 44}px`, borderRadius: "3px 3px 0 0", background: i === data.length - 1 ? "var(--primary)" : "var(--muted)", transition: "height 1s ease" }} />
+            <div style={{ width: "100%", height: `${(d.v / 100) * 44}px`, borderRadius: "3px 3px 0 0", background: i === data.length - 1 ? "var(--primary)" : "var(--muted)", transition: "height 1s ease" }} />
             <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.42rem", color: i === data.length - 1 ? "var(--primary)" : "var(--muted-foreground)" }}>{d.m[0]}</span>
           </div>
         ))}
@@ -1391,9 +1411,9 @@ function MiniBarChart() {
 
 function MiniGapBars() {
   const bars = [
-    { label: "GCP Core",   curr: 85, prev: 60, color: "#4a6cf7" },
-    { label: "Security",   curr: 93, prev: 75, color: "#34A853" },
-    { label: "DevOps",     curr: 72, prev: 50, color: "#f87171" },
+    { label: "GCP Core", curr: 85, prev: 60, color: "#4a6cf7" },
+    { label: "Security", curr: 93, prev: 75, color: "#34A853" },
+    { label: "DevOps",   curr: 72, prev: 50, color: "#f87171" },
   ];
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1419,8 +1439,6 @@ function DashboardShowcase() {
     <section className="border-y border-border bg-surface py-24">
       <div className="mx-auto max-w-7xl px-6">
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-2 lg:items-center">
-
-          {/* Left: copy */}
           <div>
             <div className="mono-label mb-3">LIVE ANALYTICS DASHBOARD</div>
             <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
@@ -1433,7 +1451,6 @@ function DashboardShowcase() {
               <Link to="/login" className="btn-primary">See your dashboard</Link>
               <Link to="/login" className="btn-ghost">View sample report</Link>
             </div>
-            {/* Bullet points */}
             <div className="mt-8 space-y-3">
               {[
                 "Skill gap bars show before vs. after — not vanity metrics",
@@ -1449,36 +1466,25 @@ function DashboardShowcase() {
               ))}
             </div>
           </div>
-
-          {/* Right: mini dashboard mockup */}
           <div style={{ position: "relative" }}>
-            {/* Outer glow */}
             <div style={{ position: "absolute", inset: -20, borderRadius: 32, background: "radial-gradient(ellipse at 60% 40%, rgba(74,108,247,0.08), transparent 70%)", pointerEvents: "none" }} />
-
-            <div style={{
-              borderRadius: 20, border: "1px solid var(--border)", background: "var(--background)",
-              overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.10)",
-              position: "relative",
-            }}>
-              {/* Dashboard topbar */}
+            <div style={{ borderRadius: 20, border: "1px solid var(--border)", background: "var(--background)", overflow: "hidden", boxShadow: "0 32px 80px rgba(0,0,0,0.10)", position: "relative" }}>
               <div style={{ borderBottom: "1px solid var(--border)", padding: "12px 18px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <svg width="16" height="16" viewBox="0 0 28 28" fill="none"><path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" /></svg>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>cloudflight</span>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>PROPEL</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 24, height: 24, borderRadius: "50%", background: "var(--primary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, color: "white", fontWeight: 700 }}>AJ</div>
                   <span style={{ fontFamily: "var(--font-mono)", fontSize: "0.52rem", letterSpacing: "0.05em", color: "var(--foreground)" }}>ALEX JOHNSON</span>
                 </div>
               </div>
-
               <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 16 }}>
-                {/* Top metric row */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
                   {[
-                    { label: "Success rate", val: "89%",  delta: "↑ 5%",   up: true  },
-                    { label: "Missions done", val: "28",  delta: "+2 wk",   up: true  },
-                    { label: "Weakest track", val: "Storage", delta: "71%", up: false },
+                    { label: "Success rate",  val: "89%",     delta: "↑ 5%",   up: true  },
+                    { label: "Missions done", val: "28",      delta: "+2 wk",  up: true  },
+                    { label: "Weakest track", val: "Storage", delta: "71%",    up: false },
                   ].map((m) => (
                     <div key={m.label} style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "10px 12px" }}>
                       <div style={{ fontFamily: "var(--font-mono)", fontSize: "0.48rem", letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--muted-foreground)", marginBottom: 4 }}>{m.label}</div>
@@ -1487,18 +1493,10 @@ function DashboardShowcase() {
                     </div>
                   ))}
                 </div>
-
-                {/* Bottom two panels */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "12px 14px" }}>
-                    <MiniBarChart />
-                  </div>
-                  <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "12px 14px" }}>
-                    <MiniGapBars />
-                  </div>
+                  <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "12px 14px" }}><MiniBarChart /></div>
+                  <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "12px 14px" }}><MiniGapBars /></div>
                 </div>
-
-                {/* AI recommendation row */}
                 <div style={{ borderRadius: 12, border: "1px solid var(--border)", background: "var(--surface)", padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(74,108,247,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1521,7 +1519,7 @@ function DashboardShowcase() {
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   ORBIT SECTION — learner community
+   ORBIT SECTION
 ══════════════════════════════════════════════════════════════════ */
 function OrbitSection() {
   return (
@@ -1552,9 +1550,9 @@ function OrbitSection() {
 ══════════════════════════════════════════════════════════════════ */
 function HowItWorks() {
   const steps = [
-    { n: "01", title: "We profile your engineers", body: "A 10-minute baseline mission scores each learner across the six tracks. No multiple choice — actual cloud work." },
-    { n: "02", title: "AI assigns the next mission", body: "Our recommender weighs gaps, recency, team objectives, and difficulty curve to pick what unlocks the most growth." },
-    { n: "03", title: "Live GCP sandbox spins up", body: "An isolated, budget-capped environment provisions in under 30 seconds. Real services, real bills (we pay)." },
+    { n: "01", title: "We profile your engineers",     body: "A 10-minute baseline mission scores each learner across the six tracks. No multiple choice — actual cloud work." },
+    { n: "02", title: "AI assigns the next mission",   body: "Our recommender weighs gaps, recency, team objectives, and difficulty curve to pick what unlocks the most growth." },
+    { n: "03", title: "Live GCP sandbox spins up",     body: "An isolated, budget-capped environment provisions in under 30 seconds. Real services, real bills (we pay)." },
     { n: "04", title: "Automatic grading + AI mentor", body: "Submissions are graded against infrastructure state, not screenshots. The mentor explains every deduction." },
   ];
   return (
@@ -1616,7 +1614,7 @@ function CTA() {
         </h2>
         <div className="mt-10 flex flex-wrap items-center gap-3">
           <Link to="/login" className="rounded-full bg-primary px-6 py-3.5 text-[15px] font-medium text-white hover:opacity-90">
-            Start a free mission
+            Start a mission
           </Link>
           <button className="rounded-full border border-white/20 px-6 py-3.5 text-[15px] font-medium hover:bg-white/5">
             Book a team demo
@@ -1626,6 +1624,7 @@ function CTA() {
     </section>
   );
 }
+
 function Footer() {
   return (
     <footer className="mx-auto max-w-7xl border-t border-border px-6 py-10">

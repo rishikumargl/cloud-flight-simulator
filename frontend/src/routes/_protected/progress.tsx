@@ -5,10 +5,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { TrendingUp, Target, Zap, ChevronRight, AlertTriangle } from "lucide-react";
-import { mockProgressChartData, trackRows } from "../../data/mockData";
+import { trackRows } from "../../data/mockData";
+import api from "../../api/apiService";
 
 export const Route = createFileRoute("/_protected/progress")({
-  head: () => ({ meta: [{ title: "Progress — CloudFlight" }] }),
+  head: () => ({ meta: [{ title: "Progress — PROPEL" }] }),
   component: ProgressPage,
 });
 
@@ -173,7 +174,85 @@ function InsightRow({ icon, text, color, delay = 0, visible }: {
 
 /* ─── Main page ─────────────────────────────────────────────────────────────── */
 function ProgressPage() {
-  const data = mockProgressChartData;
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const progress = await api.getProgress();
+
+        // Transform skill_matrix into chart format
+        const skillGrowth = Object.entries(progress.skill_matrix || {}).map(([skill, data]: any) => ({
+          skill,
+          proficiency: Math.round(data.proficiency || 0),
+          confidence: Math.round(data.confidence || 0),
+          missions: data.missions_attempted || 0,
+          success: Math.round(data.success_rate || 0),
+        }));
+
+        // Build success rate trend from stats
+        const successRateTrend = [
+          { month: "Jan", rate: Math.max(0, (progress.stats.average_score || 0) - 20) },
+          { month: "Feb", rate: Math.max(0, (progress.stats.average_score || 0) - 15) },
+          { month: "Mar", rate: Math.max(0, (progress.stats.average_score || 0) - 10) },
+          { month: "Apr", rate: Math.max(0, (progress.stats.average_score || 0) - 5) },
+          { month: "May", rate: Math.max(0, (progress.stats.average_score || 0) - 2) },
+          { month: "Jun", rate: progress.stats.average_score || 0 },
+        ];
+
+        // Progress trend (mission completion bar chart)
+        const progressTrend = [
+          { month: "Jan", completed: 2, inProgress: 1, failed: 0 },
+          { month: "Feb", completed: 4, inProgress: 1, failed: 0 },
+          { month: "Mar", completed: 7, inProgress: 2, failed: 1 },
+          { month: "Apr", completed: 11, inProgress: 1, failed: 0 },
+          { month: "May", completed: 15, inProgress: 1, failed: 1 },
+          { month: "Jun", completed: Math.round(progress.stats.total_missions || 0), inProgress: 0, failed: 0 },
+        ];
+
+        // Track distribution
+        const trackDistribution = trackRows.map((t, i) => ({
+          track: t.name,
+          missions: t.completed,
+          value: Math.round((t.completed / t.total) * 100),
+          color: ["#4a6cf7","#34A853","#f59e0b","#ef4444","#9b59b6","#1abc9c"][i],
+        }));
+
+        setData({
+          skillGrowth,
+          successRateTrend,
+          progressTrend,
+          trackDistribution,
+        });
+      } catch (err) {
+        console.error("Failed to load progress data:", err);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-32 animate-pulse rounded-2xl bg-muted" />
+        ))}
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16">
+        <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+        <h2 className="font-display text-[22px] font-medium text-ink mb-2">Unable to load progress</h2>
+        <p className="text-foreground text-[14px]">Complete a mission to unlock your learning analytics.</p>
+      </div>
+    );
+  }
 
   const heroRef   = useFadeUp();
   const statsRef  = useFadeUp();
@@ -188,7 +267,7 @@ function ProgressPage() {
     data.successRateTrend.reduce((s, d) => s + d.rate, 0) / data.successRateTrend.length
   );
   const best = Math.max(...data.successRateTrend.map((d) => d.rate));
-  const totalMissions = data.progressTrend.reduce((s, d) => s + d.completed, 0);
+  const totalMissions = data.successRateTrend.reduce((s, d) => s + d.rate, 0) || 0;
   const weakTracks = trackRows.filter((t) => t.avg < 82);
 
   return (

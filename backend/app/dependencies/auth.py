@@ -93,9 +93,9 @@ async def get_current_user(
     """Get the current authenticated user from Clerk JWT.
 
     Validates Clerk session token using RS256 public key verification.
-    On first login, provisions a local user record.
+    On first login, extracts email/name from JWT claims (avoids Clerk SDK bugs).
     On subsequent logins, syncs email/full_name if they were previously NULL
-    (covers the case where Clerk SDK was unavailable during initial provisioning).
+    (backfill from Clerk API, with graceful fallback if fetch fails).
 
     Args:
         authorization: Authorization header (format: "Bearer <token>").
@@ -159,13 +159,43 @@ async def get_current_user(
 
     print(f"[AUTH_SYNC] JWT verified. clerk_id={clerk_id}")
 
+    # ── Extract email/name from JWT claims (primary source) ──────────────────
+    jwt_email = None
+    jwt_full_name = None
+
+    # Clerk includes email_address and name in the token
+    jwt_email = claims.get("email")
+    if not jwt_email and claims.get("email_verified"):
+        # Sometimes it's email_address instead of email
+        jwt_email = claims.get("email_address")
+
+    # Get full name from JWT claims
+    first_name = claims.get("given_name") or ""
+    last_name = claims.get("family_name") or ""
+    jwt_full_name = f"{first_name} {last_name}".strip() or None
+
+    print(f"[AUTH_SYNC] JWT contains: email={jwt_email!r}, name={jwt_full_name!r}")
+
     # ── Look up user in local DB ───────────────────────────────────────────
     user = db.query(User).filter(User.clerk_id == clerk_id).first()
 
     if not user:
-        # ── First login: fetch profile then provision ──────────────────────
-        print(f"[AUTH_SYNC] New user — provisioning. clerk_id={clerk_id}")
-        email, full_name = await _fetch_clerk_profile(clerk_id)
+        # ── First login: use JWT claims directly, avoid Clerk SDK issues ─────
+        print(f"[AUTH_SYNC] New user — provisioning from JWT. clerk_id={clerk_id}")
+
+        # If JWT doesn't have email, try Clerk SDK as fallback (but don't crash if it fails)
+        email = jwt_email
+        full_name = jwt_full_name
+
+        if not email:
+            print(f"[AUTH_SYNC] Email missing from JWT — attempting Clerk API fetch")
+            fallback_email, fallback_name = await _fetch_clerk_profile(clerk_id)
+            if fallback_email:
+                email = fallback_email
+                print(f"[AUTH_SYNC] Got email from Clerk API: {email!r}")
+            if fallback_name:
+                full_name = fallback_name
+                print(f"[AUTH_SYNC] Got name from Clerk API: {full_name!r}")
 
         try:
             user = User(
@@ -195,16 +225,31 @@ async def get_current_user(
         print(f"[AUTH_SYNC] Existing user found. user_id={user.user_id} email={user.email!r}")
 
         # ── Sync email/name if they are NULL (backfill existing null rows) ──
+        # Priority: JWT claims > Clerk API > existing value
         needs_sync = not user.email or not user.full_name
         if needs_sync:
-            print(f"[AUTH_SYNC] email or full_name is NULL — fetching from Clerk to backfill")
-            email, full_name = await _fetch_clerk_profile(clerk_id)
-            if email and not user.email:
-                user.email = email
-                print(f"[AUTH_SYNC] Backfilled email={email!r}")
-            if full_name and not user.full_name:
-                user.full_name = full_name
-                print(f"[AUTH_SYNC] Backfilled full_name={full_name!r}")
+            print(f"[AUTH_SYNC] email or full_name is NULL — syncing from JWT/Clerk")
+
+            # Try JWT first
+            if jwt_email and not user.email:
+                user.email = jwt_email
+                print(f"[AUTH_SYNC] Backfilled email from JWT: {jwt_email!r}")
+            elif not user.email:
+                # Fall back to Clerk API (but don't crash if it fails)
+                fallback_email, _ = await _fetch_clerk_profile(clerk_id)
+                if fallback_email:
+                    user.email = fallback_email
+                    print(f"[AUTH_SYNC] Backfilled email from Clerk API: {fallback_email!r}")
+
+            if jwt_full_name and not user.full_name:
+                user.full_name = jwt_full_name
+                print(f"[AUTH_SYNC] Backfilled name from JWT: {jwt_full_name!r}")
+            elif not user.full_name:
+                # Fall back to Clerk API
+                _, fallback_name = await _fetch_clerk_profile(clerk_id)
+                if fallback_name:
+                    user.full_name = fallback_name
+                    print(f"[AUTH_SYNC] Backfilled name from Clerk API: {fallback_name!r}")
 
         user.last_login_at = datetime.now(timezone.utc)
         user.updated_at = datetime.now(timezone.utc)

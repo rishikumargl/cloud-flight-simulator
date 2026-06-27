@@ -41,12 +41,24 @@ const apiService = {
   },
 
   // Challenge: Start
+  // Normalizes nested backend response { session: {...}, environment: {...}, gcp_console_url }
+  // into flat { session_id, environment, gcp_console_url, expires_at }
   startChallenge: async (mission_id: string) => {
     try {
       const response = await axiosClient.post("/challenges/start", {
         mission_id,
       });
-      return response.data.data;
+      const data = response.data.data;
+      return {
+        session_id: data.session.session_id,
+        user_id: data.session.user_id,
+        mission_id: data.session.mission_id,
+        status: data.session.status,
+        started_at: data.session.started_at,
+        expires_at: data.session.expires_at,
+        environment: data.environment,
+        gcp_console_url: data.gcp_console_url,
+      };
     } catch (error) {
       console.error("Failed to start challenge:", error);
       throw error;
@@ -86,45 +98,121 @@ const apiService = {
     }
   },
 
-  // Evaluation: Run live evaluation
-  runEvaluation: async (session_id: string) => {
+  // Progress: Get current learner progress (skills, achievements, stats, recent missions)
+  getProgress: async () => {
     try {
-      const response = await axiosClient.post(`/evaluate/${session_id}/run`);
+      const response = await axiosClient.get("/progress/me");
       return response.data.data;
+    } catch (error) {
+      console.error("Failed to get progress:", error);
+      throw error;
+    }
+  },
+
+  // Evaluation: Run live evaluation
+  // Normalizes enriched response with evaluation + analytics + coach + recommendation
+  // Flattens deterministic_checks { passed: [], failed: [] } into single criteria array
+  runEvaluation: async (session_id: string, payload?: { solution_description: string }) => {
+    try {
+      const response = await axiosClient.post(`/evaluate/${session_id}/run`, payload || {});
+      const data = response.data.data;
+
+      // Flatten deterministic_checks into single ordered criteria array
+      const criteria = [
+        ...data.evaluation.deterministic_checks.passed,
+        ...data.evaluation.deterministic_checks.failed,
+      ];
+
+      // Return normalized response
+      return {
+        evaluation: {
+          evaluation_id: data.evaluation.evaluation_id,
+          session_id: data.evaluation.session_id,
+          status: data.evaluation.status,
+          score: data.evaluation.score,
+          evaluated_at: data.evaluation.evaluated_at,
+          criteria, // Flattened array
+        },
+        analytics: data.analytics,
+        coach: data.coach,
+        recommendation: data.recommendation,
+      };
     } catch (error) {
       console.error("Failed to run evaluation:", error);
       throw error;
     }
   },
 
-  // === PLACEHOLDER METHODS (Return Empty/Safe Defaults) ===
-  // These routes are NOT YET IMPLEMENTED in the backend
+  // === HELPER METHODS (Derive from real endpoints) ===
 
+  // Dashboard stats derived from GET /progress/me
   getDashboardStats: async () => {
-    return {
-      missionsCompleted: 0,
-      successRate: 0,
-      currentLevel: "Beginner",
-    };
+    try {
+      const progress = await apiService.getProgress();
+      return {
+        missionsCompleted: progress.stats.total_missions,
+        successRate: progress.stats.average_score,
+        currentLevel: progress.overall_proficiency >= 80 ? "Advanced" : progress.overall_proficiency >= 60 ? "Intermediate" : "Beginner",
+      };
+    } catch {
+      return {
+        missionsCompleted: 0,
+        successRate: 0,
+        currentLevel: "Beginner",
+      };
+    }
   },
 
+  // Mission history derived from GET /progress/me (recent_missions)
   getMissionHistory: async () => {
-    return [];
+    try {
+      const progress = await apiService.getProgress();
+      return progress.recent_missions || [];
+    } catch {
+      return [];
+    }
   },
 
+  // Recent activities derived from GET /progress/me
   getRecentActivities: async () => {
-    return [];
+    try {
+      const progress = await apiService.getProgress();
+      return (progress.recent_missions || []).slice(0, 5).map((m) => ({
+        id: m.mission_id,
+        icon: "✓",
+        title: m.title,
+        description: m.status === "PASSED" ? "Completed successfully" : "In progress",
+        timestamp: new Date(m.completed_at).toLocaleDateString(),
+      }));
+    } catch {
+      return [];
+    }
   },
 
+  // Progress charts derived from GET /progress/me
   getProgressCharts: async () => {
-    return {
-      lineChart: [],
-      barChart: [],
-      pieChart: [],
-    };
+    try {
+      const progress = await apiService.getProgress();
+      const skills = progress.skill_matrix || {};
+      return {
+        skillGrowth: Object.entries(skills).map(([skill, data]) => ({
+          skill,
+          proficiency: data.proficiency || 0,
+        })),
+        stats: progress.stats,
+      };
+    } catch {
+      return {
+        skillGrowth: [],
+        stats: {},
+      };
+    }
   },
 
+  // Recommendations derived from last evaluation (should be in state, not API call)
   getRecommendations: async () => {
+    // This should come from the evaluation response, not a separate API call
+    // Returns empty by default - component should use cached evaluation
     return [];
   },
 
@@ -155,6 +243,17 @@ const apiService = {
       return response.data.data;
     } catch (error) {
       console.error("Failed to clear session:", error);
+      throw error;
+    }
+  },
+
+  // Admin: get system-wide analytics for operations dashboard
+  adminGetAnalytics: async () => {
+    try {
+      const response = await axiosClient.get("/admin/analytics");
+      return response.data.data;
+    } catch (error) {
+      console.error("Failed to get admin analytics:", error);
       throw error;
     }
   },

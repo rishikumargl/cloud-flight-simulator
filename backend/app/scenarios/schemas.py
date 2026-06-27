@@ -152,3 +152,36 @@ class MissionSchema(BaseModel):
                 "created_at": "2026-06-22T10:30:00Z",
             }
         }
+
+
+class LearningProfileSchema(BaseModel):
+    """Learner profile with adaptive recommendations."""
+
+    user_id: str = Field(..., description="UUID of learner")
+    current_level: str = Field(..., description="Current difficulty: BEGINNER, INTERMEDIATE, ADVANCED")
+    confidence: float = Field(..., description="Confidence in skill level (0-100)")
+    strengths: List[str] = Field(..., description="Topics where learner excels")
+    weaknesses: List[str] = Field(..., description="Topics where learner struggles")
+    recommended_difficulty: str = Field(..., description="Recommended next difficulty")
+    recommended_track: str = Field(..., description="Recommended next track")
+    estimated_completion_time: int = Field(..., description="Estimated completion time in minutes")
+    coach_summary: str = Field(..., description="AI coaching summary for learner")
+    next_prompt: str = Field(..., description="LLM prompt to generate next mission")
+
+
+class RecommendationSchema(BaseModel):
+    """Recommendation for next mission."""
+
+    recommended_difficulty: str = Field(..., description="BEGINNER, INTERMEDIATE, or ADVANCED")
+    recommended_track: str = Field(..., description="COMPUTE or STORAGE")
+    reason: str = Field(..., description="Why this is recommended")
+    confidence: float = Field(..., description="Confidence score 0-100")
+    topics_to_focus: List[str] = Field(..., description="Key topics to practice")
+    estimated_completion_time: int = Field(..., description="Expected time in minutes")
+
+
+class GenerateScenarioRequest(BaseModel):
+    """Request to generate a new mission."""
+
+    track: str = Field(..., description="Track: COMPUTE or STORAGE")
+    difficulty: str = Field(..., description="Difficulty: BEGINNER, INTERMEDIATE, or ADVANCED")

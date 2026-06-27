@@ -108,7 +108,9 @@ class ChallengeService:
         fault_config = provisioning_params.get("fault_configuration")
 
         unique_id = str(uuid4())[:8]
-        vm_name = f"{name_suffix}-{unique_id}"
+        max_suffix_len = 54  # 63 - 1 (dash) - 8 (uuid)
+        truncated_suffix = name_suffix[:max_suffix_len]
+        vm_name = f"{truncated_suffix}-{unique_id}"
 
         # Step 2.5: Determine VM configuration (apply faults during construction)
         # Start with baseline configuration

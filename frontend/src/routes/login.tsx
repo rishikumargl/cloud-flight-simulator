@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { SignIn } from "@clerk/clerk-react";
 
 export const Route = createFileRoute("/login")({
-  head: () => ({ meta: [{ title: "Sign in — CloudFlight" }] }),
+  head: () => ({ meta: [{ title: "Sign in — PROPEL" }] }),
   component: LoginPage,
 });
 
@@ -12,7 +12,7 @@ function Logo() {
       <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
         <path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" />
       </svg>
-      <span className="text-lg font-semibold tracking-tight text-ink">cloudflight</span>
+      <span className="text-lg font-semibold tracking-tight text-ink">PROPEL</span>
     </div>
   );
 }
@@ -34,12 +34,15 @@ function LoginPage() {
             </p>
           </div>
           <div className="flex justify-center">
-            <SignIn fallbackRedirectUrl="/dashboard" />
+            <SignIn
+              fallbackRedirectUrl="/dashboard"
+              signUpUrl="/signup"
+            />
           </div>
         </div>
       </div>
       <footer className="mx-auto w-full max-w-7xl border-t border-border px-6 py-6">
-        <p className="mono-label">© 2026 CLOUDFLIGHT</p>
+        <p className="mono-label">© 2026 PROPEL</p>
       </footer>
     </div>
   );

@@ -469,3 +469,90 @@ CRITICAL RULES:
 
         except Exception as e:
             raise ValueError(f"LangChain chain invocation failed: {str(e)}")
+
+    def get_recommendation(self, db: Session, user_id: str) -> dict:
+        """Generate next mission recommendation based on learner performance.
+
+        Args:
+            db: Database session
+            user_id: UUID of user
+
+        Returns:
+            dict with recommended_difficulty, recommended_track, reason, confidence
+        """
+        try:
+            from sqlalchemy import text
+
+            # Query evaluation history
+            query = text("""
+                SELECT
+                    m.difficulty,
+                    AVG(e.percentage)::FLOAT as avg_score,
+                    COUNT(DISTINCT cs.session_id) as total_attempts,
+                    COUNT(DISTINCT CASE WHEN e.percentage >= 80 THEN cs.session_id END) as successful
+                FROM evaluations e
+                INNER JOIN challenge_sessions cs ON e.session_id = cs.session_id
+                INNER JOIN missions m ON cs.mission_id = m.mission_id
+                WHERE cs.user_id = :user_id AND cs.completed_at IS NOT NULL
+                GROUP BY m.difficulty
+            """)
+
+            results = db.execute(query, {"user_id": user_id}).fetchall()
+
+            if not results:
+                # New user - start with BEGINNER
+                return {
+                    "next_difficulty": "BEGINNER",
+                    "next_topic": "Compute Engine Basics",
+                    "estimated_duration": 30,
+                    "confidence": 50,
+                    "reason": "Welcome! Start with BEGINNER level missions to learn GCP fundamentals."
+                }
+
+            # Analyze by difficulty
+            scores_by_difficulty = {}
+            for row in results:
+                difficulty = row[0]
+                avg_score = float(row[1]) if row[1] else 0
+                scores_by_difficulty[difficulty] = avg_score
+
+            # Recommend next difficulty
+            next_difficulty = "BEGINNER"
+            confidence = 60
+
+            if scores_by_difficulty.get("BEGINNER", 0) >= 80:
+                next_difficulty = "INTERMEDIATE"
+                confidence = 75
+            if scores_by_difficulty.get("INTERMEDIATE", 0) >= 80:
+                next_difficulty = "ADVANCED"
+                confidence = 75
+
+            # Default to repeating current level if not passing
+            current_score = max(scores_by_difficulty.values()) if scores_by_difficulty else 0
+            if current_score < 80:
+                next_difficulty = list(scores_by_difficulty.keys())[-1]
+                confidence = 50
+
+            # Generate reason
+            if current_score >= 80:
+                reason = f"You've mastered the current level! Move on to {next_difficulty} missions."
+            else:
+                reason = f"Keep practicing at {next_difficulty} level to improve your skills."
+
+            return {
+                "next_difficulty": next_difficulty,
+                "next_topic": "Continue with Compute Engine",
+                "estimated_duration": 45 if next_difficulty == "INTERMEDIATE" else 60 if next_difficulty == "ADVANCED" else 30,
+                "confidence": confidence,
+                "reason": reason
+            }
+
+        except Exception as e:
+            print(f"[WARN] Failed to generate recommendation: {e}")
+            return {
+                "next_difficulty": "BEGINNER",
+                "next_topic": "Compute Engine Basics",
+                "estimated_duration": 30,
+                "confidence": 50,
+                "reason": "Continue with your learning journey."
+            }

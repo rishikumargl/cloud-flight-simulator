@@ -9,7 +9,7 @@ from app.dependencies import get_db
 
 from .service import ScenarioService
 from .models import Mission
-from .schemas import MissionSchema
+from .schemas import MissionSchema, GenerateScenarioRequest
 
 router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
@@ -21,7 +21,7 @@ def get_scenario_service() -> ScenarioService:
 
 @router.post("/generate")
 async def generate_scenario(
-    request: dict,
+    request: GenerateScenarioRequest,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
     scenario_service: ScenarioService = Depends(get_scenario_service),
@@ -39,8 +39,8 @@ async def generate_scenario(
 
     Response: {"success": true, "data": MissionSchema}
     """
-    track = request.get("track")
-    difficulty = request.get("difficulty")
+    track = request.track
+    difficulty = request.difficulty
 
     if not track or not difficulty:
         return JSONResponse(
