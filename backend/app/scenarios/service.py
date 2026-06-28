@@ -228,6 +228,35 @@ class ScenarioService:
                 "avg_score": 0.0,
             }
 
+    def _sanitize_fault_types(self, mission_data: dict) -> dict:
+        """
+        Sanitize fault_configuration.type values to only allowed types.
+        LLMs sometimes hallucinate unsupported fault types; this fixes them.
+
+        Allowed types: STARTUP_SCRIPT_CRASH, CORRUPT_METADATA, MISCONFIGURED_TAGS
+        """
+        ALLOWED_TYPES = {"STARTUP_SCRIPT_CRASH", "CORRUPT_METADATA", "MISCONFIGURED_TAGS"}
+
+        for criterion in mission_data.get("success_criteria", []):
+            fault_config = criterion.get("fault_configuration")
+            if fault_config and "type" in fault_config:
+                fault_type = fault_config["type"]
+                if fault_type not in ALLOWED_TYPES:
+                    # Map hallucinated types to closest allowed type
+                    if "SSH" in fault_type or "STARTUP" in fault_type or "SCRIPT" in fault_type:
+                        fault_config["type"] = "STARTUP_SCRIPT_CRASH"
+                    elif "METADATA" in fault_type or "CORRUPT" in fault_type:
+                        fault_config["type"] = "CORRUPT_METADATA"
+                    elif "TAG" in fault_type or "CONFIG" in fault_type:
+                        fault_config["type"] = "MISCONFIGURED_TAGS"
+                    else:
+                        # Default fallback
+                        fault_config["type"] = "CORRUPT_METADATA"
+
+                    print(f"[WARN] Sanitized fault type '{fault_type}' → '{fault_config['type']}'")
+
+        return mission_data
+
     def _invoke_generation_chain(
         self,
         track: str,
@@ -422,6 +451,9 @@ CRITICAL RULES:
                     "total_attempts": total_attempts,
                 }
             )
+
+            # Sanitize fault types before validation (LLMs sometimes hallucinate unsupported types)
+            mission_data = self._sanitize_fault_types(mission_data)
 
             # Validate response structure
             required_fields = [

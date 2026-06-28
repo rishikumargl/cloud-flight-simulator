@@ -76,17 +76,41 @@ function Dashboard() {
         setLoading(true);
         try {
           const result = await api.getProgress();
-          // Check if result has meaningful data (at least has stats with total_missions)
-          if (result?.stats?.total_missions && result.stats.total_missions > 0) {
-            setProgress(result);
+
+          // If API returned data, intelligently merge with mock for better UX
+          if (result && Object.keys(result).length > 0) {
+            const mockData = generateMockDashboardData();
+            // Always use real data where available, fall back to mock only for empty fields
+            const mergedProgress = {
+              // Real data takes priority
+              current_level: result.current_level || mockData.current_level,
+              level_progress_pct: result.level_progress_pct !== undefined ? result.level_progress_pct : mockData.level_progress_pct,
+              next_level: result.next_level || mockData.next_level,
+              overall_proficiency: result.overall_proficiency !== undefined ? result.overall_proficiency : mockData.overall_proficiency,
+              stats: result.stats || mockData.stats,
+              learning_streak: result.learning_streak || mockData.learning_streak,
+              achievements: result.achievements && result.achievements.length > 0
+                ? result.achievements
+                : mockData.achievements,
+              recent_missions: result.recent_missions && result.recent_missions.length > 0
+                ? result.recent_missions
+                : mockData.recent_missions,
+              // CRITICAL: Use mock skills if real skills are all zeros/empty
+              // Check if any skill has non-zero proficiency
+              skill_matrix: (result.skill_matrix &&
+                Object.values(result.skill_matrix).some((s: any) => s.proficiency > 0))
+                ? result.skill_matrix
+                : mockData.skill_matrix,
+            };
+            setProgress(mergedProgress);
             return;
           }
         } catch (apiErr) {
-          console.warn("API call failed or returned empty:", apiErr);
+          console.warn("API call failed:", apiErr);
         }
 
-        // Always use mock data for better demo experience
-        console.warn("Using mock dashboard data for demo");
+        // Fallback: Use complete mock data for better demo experience
+        console.warn("Using full mock dashboard data for demo");
         setProgress(generateMockDashboardData());
       } finally {
         setLoading(false);

@@ -9,6 +9,7 @@ import {
   ExplanationReviewCard,
   SkillBreakdownCard,
   MissionAnalyticsCard,
+  CriteriaDetailsCard,
   RecommendationCard,
 } from "../../components/FeedbackReport";
 import { calculateDuration, calculateEfficiency } from "../../utils/feedbackUtils";
@@ -31,7 +32,7 @@ interface EvaluationData {
       improvements?: string[];
       next_focus?: string;
     };
-    technical_skills?: Record<string, { proficiency: number }>;
+    technical_skills?: Record<string, { weight?: number; proficiency: number }>;
     recommendation?: {
       track?: string;
       difficulty?: string;
@@ -40,6 +41,10 @@ interface EvaluationData {
     summary?: string;
     solution_description?: string;
     criteria?: Array<{ passed: boolean; description?: string }>;
+    deterministic_checks?: {
+      passed: Array<any>;
+      failed: Array<{ criterion_id: string; passed: boolean; details: string; weight: number }>;
+    };
   };
   mission?: {
     mission_id: string;
@@ -105,14 +110,20 @@ function FeedbackPage() {
         // Second: Try to load from API using session_id (id is the session_id from URL)
         try {
           const result = await (api as any).getEvaluation(id);
-          if (result?.evaluation) {
-            // Normalize the response to match our expected format
+
+          // Handle API response structure: {"success": true, "data": {...}}
+          let evalResponse = result?.data || result;
+
+          if (evalResponse?.evaluation) {
+            // API returned nested structure with evaluation, mission, session
             setEvaluation({
-              evaluation: result,
-              analytics: {},
+              evaluation: evalResponse.evaluation,
+              mission: evalResponse.mission,
+              session: evalResponse.session,
+              analytics: evalResponse.analytics || {},
             });
-          } else if (result) {
-            setEvaluation(result);
+          } else if (evalResponse) {
+            setEvaluation(evalResponse);
           } else {
             throw new Error("No evaluation data");
           }
@@ -230,12 +241,20 @@ function FeedbackPage() {
   // Extract data from evaluation response (handle both nested and flat formats)
   const evalData = evaluation.evaluation || evaluation;
   const analyticsData = evaluation.analytics || {};
-  const criteriaResults = evalData.criteria
-    ? {
-        passed: evalData.criteria.filter((c: any) => c.passed).length,
-        failed: evalData.criteria.filter((c: any) => !c.passed).length,
-      }
-    : undefined;
+
+  // Support both criteria and deterministic_checks formats
+  let criteriaResults;
+  if (evalData.criteria) {
+    criteriaResults = {
+      passed: evalData.criteria.filter((c: any) => c.passed).length,
+      failed: evalData.criteria.filter((c: any) => !c.passed).length,
+    };
+  } else if (evalData.deterministic_checks) {
+    criteriaResults = {
+      passed: evalData.deterministic_checks.passed?.length || 0,
+      failed: evalData.deterministic_checks.failed?.length || 0,
+    };
+  }
 
   // Ensure status is valid (fallback to PARTIAL if undefined)
   const status = evalData.status && ["PASSED", "PARTIAL", "FAILED"].includes(evalData.status)
@@ -319,6 +338,17 @@ function FeedbackPage() {
           explanationScore={evalData.explanation_score}
           criteriaResults={criteriaResults}
         />
+
+        {/* 6.5. Detailed Criteria Results */}
+        {evalData.deterministic_checks && (
+          evalData.deterministic_checks.passed.length > 0 ||
+          evalData.deterministic_checks.failed.length > 0
+        ) && (
+          <CriteriaDetailsCard
+            passed={evalData.deterministic_checks.passed || []}
+            failed={evalData.deterministic_checks.failed || []}
+          />
+        )}
 
         {/* 7. Recommended Next Mission */}
         {evalData.recommendation && (
