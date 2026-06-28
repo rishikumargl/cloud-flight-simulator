@@ -609,7 +609,6 @@ function MissionPage() {
       if (res.evaluation?.status) {
         sessionStorage.setItem("cf_current_evaluation", JSON.stringify(res));
         setTimeout(() => {
-          const navigate = Route.useNavigate();
           navigate({ to: `/feedback/${res.evaluation?.evaluation_id || session_id}` });
         }, 1500);
       }
