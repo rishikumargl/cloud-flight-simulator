@@ -74,12 +74,14 @@ function Dashboard() {
       try {
         setLoading(true);
         const result = await api.getProgress();
-        if (result?.data) {
-          setProgress(result.data);
+        if (result) {
+          setProgress(result);
+        } else {
+          setError("No progress data available");
         }
       } catch (err: any) {
         console.error("Failed to load progress:", err);
-        setError(err?.message || "Failed to load progress");
+        setError(err?.response?.data?.error?.message || err?.message || "Failed to load progress");
       } finally {
         setLoading(false);
       }
