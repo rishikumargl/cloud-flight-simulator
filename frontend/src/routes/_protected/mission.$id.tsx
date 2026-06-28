@@ -282,7 +282,6 @@ function LiveChecklist({
                   !evalCriteria ? "text-foreground" : isRevealed && passed ? "text-emerald-800 font-medium" : isRevealed ? "text-red-800" : "text-foreground"
                 }`}>{desc}</span>
               </div>
-              {weight && <span className="mono-label shrink-0">{weight}%</span>}
             </div>
           );
         })}
