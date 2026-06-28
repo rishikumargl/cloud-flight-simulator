@@ -70,9 +70,11 @@ export function AchievementsList({ achievements }: AchievementsListProps) {
               </p>
 
               {/* Hover tooltip with unlock date */}
-              <div className="invisible absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-ink px-2 py-1 text-[11px] text-white group-hover:visible z-10">
-                {new Date(achievement.earned_at).toLocaleDateString()}
-              </div>
+              {achievement.earned_at && (
+                <div className="invisible absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-ink px-2 py-1 text-[11px] text-white group-hover:visible z-10">
+                  {new Date(achievement.earned_at).toLocaleDateString()}
+                </div>
+              )}
             </div>
           );
         })}

@@ -16,8 +16,17 @@ export const Route = createFileRoute("/_protected/mission/$id")({
 /* ══ Types ═══════════════════════════════════════════════════════════ */
 interface EvalCriterion { description: string; passed: boolean; weight?: number; }
 interface EvalResult {
-  status: string; overall_score: number; passed: boolean;
-  criteria?: EvalCriterion[]; feedback?: string; evaluated_at?: string;
+  status: string;
+  score: number;
+  passed: boolean;
+  criteria?: EvalCriterion[];
+  feedback?: string;
+  evaluated_at?: string;
+  completion_time_minutes?: number;
+  expected_time_minutes?: number;
+  time_efficiency?: number;
+  mission?: { mission_id: string; title: string; track: string; difficulty: string; business_context?: string };
+  session?: { session_id: string; started_at?: string; completed_at?: string };
 }
 interface ActiveSession {
   session_id: string; mission_id: string; environment_id?: string;
@@ -325,8 +334,8 @@ function VerifyAnimator({ step }: { step: number }) {
 
 /* ══ EvalReport ══════════════════════════════════════════════════════ */
 function EvalReport({ result, onRetry }: { result: EvalResult; onRetry: () => void }) {
-  const passed = result.passed ?? result.status === "PASSED";
-  const score  = result.overall_score ?? 0;
+  const passed = result.status === "PASSED" || result.status === "PARTIAL";
+  const score  = result.score ?? 0;
   const scoreBarRef = useRef<HTMLDivElement>(null);
   const [barWidth, setBarWidth] = useState(0);
 
@@ -334,14 +343,6 @@ function EvalReport({ result, onRetry }: { result: EvalResult; onRetry: () => vo
     const t = setTimeout(() => setBarWidth(score), 400);
     return () => clearTimeout(t);
   }, [score]);
-
-  // Derive skill-category breakdown from score (placeholder enrichment)
-  const categories = [
-    { label: "Infrastructure Accuracy", score: Math.min(100, score + 5), icon: "🏗️" },
-    { label: "Cloud Best Practices",    score: Math.min(100, score - 3), icon: "☁️" },
-    { label: "Problem Solving Speed",   score: Math.min(100, score - 8), icon: "⚡" },
-    { label: "Security Posture",        score: Math.min(100, score + 2), icon: "🔒" },
-  ];
 
   return (
     <div className="space-y-5" style={{ animation: "cfFadeSlideUp 0.6s ease both" }}>
@@ -392,51 +393,69 @@ function EvalReport({ result, onRetry }: { result: EvalResult; onRetry: () => vo
       {/* Criteria results */}
       {result.criteria && result.criteria.length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6">
-          <div className="mono-label mb-5">CRITERIA RESULTS</div>
-          <div className="space-y-3">
-            {result.criteria.map((c, i) => (
-              <div key={i} className={`flex items-start gap-3 rounded-xl p-3.5 ${c.passed ? "bg-emerald-50" : "bg-red-50"}`}
-                style={{ animation: `cfFadeSlideUp 0.4s ${i * 0.1}s ease both` }}>
-                {c.passed
-                  ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
-                  : <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />}
-                <span className={`text-[13px] flex-1 ${c.passed ? "text-emerald-800" : "text-red-800"}`}>{c.description}</span>
-                {c.weight && <span className="mono-label shrink-0">{c.weight}%</span>}
-              </div>
-            ))}
+          <div className="mono-label mb-4">VALIDATION RESULTS</div>
+          <div className="space-y-2">
+            {result.criteria.map((c, i) => {
+              let title = "Validation check";
+              let details = "";
+
+              if (typeof c.description === "string") {
+                const str = c.description;
+                // Parse format: "Error Title. Expected: {...}, Got: {...}"
+                const match = str.match(/^([^.]+)\.\s*Expected:\s*([^,]+),\s*Got:\s*(.+)$/);
+
+                if (match) {
+                  title = match[1].trim();
+                  const expected = match[2].trim();
+                  const got = match[3].trim();
+
+                  // Clean up JSON-like strings
+                  const cleanValue = (val: string) => {
+                    if (val === "{}") return "nothing";
+                    if (val.startsWith("{") && val.endsWith("}")) {
+                      // Extract just the key-value pairs without quotes
+                      return val.slice(1, -1).replace(/['"]/g, "").slice(0, 50) + (val.length > 50 ? "..." : "");
+                    }
+                    return val.slice(0, 50) + (val.length > 50 ? "..." : "");
+                  };
+
+                  details = `Expected: ${cleanValue(expected)} → Got: ${cleanValue(got)}`;
+                } else {
+                  title = str;
+                }
+              } else if (typeof c.description === "object" && c.description !== null) {
+                if ("criterion_id" in c.description) {
+                  title = c.description.criterion_id || "Validation check";
+                }
+              }
+
+              return (
+                <div key={i} className={`flex items-start gap-3 rounded-lg p-3 ${c.passed ? "bg-emerald-50" : "bg-red-50"}`}
+                  style={{ animation: `cfFadeSlideUp 0.4s ${i * 0.1}s ease both` }}>
+                  {c.passed
+                    ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                    : <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />}
+                  <div className="flex-1">
+                    <span className={`text-[13px] font-medium block leading-snug ${c.passed ? "text-emerald-900" : "text-red-900"}`}>
+                      {title}
+                    </span>
+                    {details && (
+                      <span className={`text-[12px] opacity-80 block mt-1 leading-snug ${c.passed ? "text-emerald-800" : "text-red-800"}`}>
+                        {details}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
 
-      {/* Skill breakdown */}
-      <div className="rounded-2xl border border-border bg-surface p-6">
-        <div className="mono-label mb-5">PERFORMANCE BREAKDOWN</div>
-        <div className="space-y-4">
-          {categories.map((cat, i) => (
-            <div key={cat.label} style={{ animation: `cfFadeSlideUp 0.4s ${i * 0.08}s ease both` }}>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[13px] font-medium text-ink">{cat.icon} {cat.label}</span>
-                <span className={`mono-label font-semibold ${cat.score >= 85 ? "text-emerald-600" : cat.score >= 70 ? "text-amber-600" : "text-red-500"}`}>
-                  {cat.score}%
-                </span>
-              </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full transition-all duration-1000"
-                  style={{
-                    width: `${cat.score}%`,
-                    background: cat.score >= 85 ? "var(--primary)" : cat.score >= 70 ? "#f59e0b" : "#ef4444",
-                    transitionDelay: `${i * 100 + 500}ms`,
-                  }} />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
       {!passed && (
         <button onClick={onRetry}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-3 text-[13px] font-medium text-foreground hover:bg-background transition">
-          <RefreshCw className="h-4 w-4" /> Fix &amp; Retry Verification
+          <RefreshCw className="h-4 w-4" /> Try Again
         </button>
       )}
     </div>
@@ -524,7 +543,7 @@ function MissionPage() {
   const verifyTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Timeline step
-  const timelineStep = evalResult?.passed
+  const timelineStep = evalResult && (evalResult.status === "PASSED" || evalResult.status === "PARTIAL")
     ? 4 : evalResult ? 3 : verifying ? 3
     : environment?.status === "READY" ? 2
     : environment?.status === "PROVISIONING" ? 1 : 0;
@@ -588,22 +607,40 @@ function MissionPage() {
 
   /* ── Verify ── */
   const handleVerify = useCallback(async () => {
-    if (verifying || !solutionDescription.trim()) {
-      if (!solutionDescription.trim()) {
-        setEvalError("Please explain your solution before verifying the mission.");
-      }
-      return;
-    }
-    setVerifying(true); setVerifyStep(0); setEvalError(null);
+    setVerifying(true);
+    setVerifyStep(0);
+    setEvalError(null);
     // Animate verify steps
     verifyTimerRef.current = setInterval(() => {
       setVerifyStep(s => Math.min(s + 1, VERIFY_STEPS.length - 1));
     }, 1200);
     try {
+      // Step 1: Verify technical solution only (no explanation required)
+      const verifyRes = await (api as any).verifyMission(session_id);
+      setEvalResult(verifyRes);
+
+      // If verification succeeds (PASSED or PARTIAL), stay on page
+      // Show reflection textarea below verification results
+      // User will submit reflection separately
+    } catch (err: any) {
+      setEvalError(err?.response?.data?.detail ?? err?.message ?? "Verification failed. Please try again.");
+    } finally {
+      clearInterval(verifyTimerRef.current!);
+      setVerifying(false);
+    }
+  }, [verifying, session_id]);
+
+  const handleSubmitReflection = useCallback(async () => {
+    if (!solutionDescription.trim()) {
+      setEvalError("Please explain your solution before submitting.");
+      return;
+    }
+    setVerifying(true);
+    try {
+      // Step 2: Submit reflection with explanation
       const res = await (api as any).runEvaluation(session_id, {
         solution_description: solutionDescription
       });
-      setEvalResult(res);
 
       // Store evaluation in sessionStorage and navigate to feedback page
       if (res.evaluation?.status) {
@@ -613,9 +650,8 @@ function MissionPage() {
         }, 1500);
       }
     } catch (err: any) {
-      setEvalError(err?.response?.data?.detail ?? err?.message ?? "Verification failed. Please try again.");
+      setEvalError(err?.response?.data?.detail ?? err?.message ?? "Submission failed. Please try again.");
     } finally {
-      clearInterval(verifyTimerRef.current!);
       setVerifying(false);
     }
   }, [verifying, session_id, solutionDescription]);
@@ -740,7 +776,7 @@ function MissionPage() {
           )}
 
           {/* Next mission teaser after pass */}
-          {evalResult?.passed && <NextMissionTeaser navigate={navigate} />}
+          {evalResult && (evalResult.status === "PASSED" || evalResult.status === "PARTIAL") && <NextMissionTeaser navigate={navigate} />}
 
           {/* Error state */}
           {evalError && (
@@ -800,29 +836,9 @@ function MissionPage() {
             </div>
           </div>
 
-          {/* Mission Reflection */}
-          {!evalResult?.passed && (
-            <div className="space-y-2.5">
-              <label className="block">
-                <span className="mono-label mb-2 block">EXPLAIN YOUR SOLUTION</span>
-                <textarea
-                  value={solutionDescription}
-                  onChange={(e) => setSolutionDescription(e.target.value)}
-                  placeholder="Describe the investigation you performed.&#10;Explain the root cause.&#10;Explain why your fix solved the issue."
-                  maxLength={1000}
-                  rows={5}
-                  className="w-full px-4 py-3 rounded-lg border border-border bg-surface text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-[13px]"
-                />
-              </label>
-              <div className="text-[11px] text-foreground/50 text-right">
-                {solutionDescription.length} / 1000 characters
-              </div>
-            </div>
-          )}
-
-          {/* Verify Mission */}
-          {!evalResult?.passed && (
-            <button onClick={handleVerify} disabled={verifying || isProvisioning || !solutionDescription.trim()}
+          {/* Step 1: Verify Technical Solution */}
+          {!evalResult && (
+            <button onClick={handleVerify} disabled={verifying || isProvisioning}
               className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3.5 text-[14px] font-medium text-white hover:opacity-90 transition hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:translate-y-0">
               {verifying
                 ? <><RefreshCw className="h-4 w-4 animate-spin" /> Verifying…</>
@@ -830,19 +846,98 @@ function MissionPage() {
             </button>
           )}
 
-          {/* Re-verify if failed */}
-          {evalResult && !evalResult.passed && !verifying && (
+          {/* Retry if verification failed */}
+          {evalResult && evalResult.status === "FAILED" && !verifying && (
             <button onClick={handleVerify}
               className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-border bg-surface px-5 py-2.5 text-[13px] font-medium text-foreground hover:bg-background transition">
               <RefreshCw className="h-3.5 w-3.5" /> Retry Verification
             </button>
           )}
 
+          {/* Step 2: Reflection (shown after verification) */}
+          {evalResult && (
+            <div className="space-y-6 rounded-3xl border-2 border-primary/30 bg-gradient-to-br from-primary/8 to-transparent p-8">
+              <label className="block">
+                <div className="mb-3 flex items-baseline justify-between">
+                  <span className="font-semibold text-ink">What steps did you take? <span className="text-red-500 font-bold">*</span></span>
+                  <span className={`text-[12px] font-mono ${
+                    solutionDescription.length === 0
+                      ? "text-foreground/40"
+                      : solutionDescription.length < 100
+                      ? "text-amber-600"
+                      : "text-emerald-600 font-medium"
+                  }`}>
+                    {solutionDescription.length === 0 ? "Required" : `${solutionDescription.length} / 1000`}
+                  </span>
+                </div>
+                <textarea
+                  value={solutionDescription}
+                  onChange={(e) => setSolutionDescription(e.target.value)}
+                  placeholder={
+                    evalResult.status === "FAILED"
+                      ? "Example:\n• Checked instance status with: gcloud compute instances list\n• Found startup script was failing\n• Modified the script and re-ran it\n• Instance passed health checks\n\nWhat did you learn from this attempt?"
+                      : "Example:\n• Ran 'gcloud compute instances list' to check status\n• Found the issue was in the startup script\n• Modified script with: gcloud compute instances create...\n• Verified with: gcloud logging read 'resource.type=gce_instance'\n\nWhy did this approach work?"
+                  }
+                  maxLength={1000}
+                  rows={7}
+                  className={`w-full px-4 py-3 rounded-xl border-2 bg-surface text-foreground placeholder:text-foreground/35 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none text-[13px] font-mono transition ${
+                    !solutionDescription.trim() && solutionDescription.length > 0
+                      ? "border-red-300 bg-red-50/20"
+                      : solutionDescription.length > 0
+                      ? "border-primary/50 bg-primary/5"
+                      : "border-border"
+                  }`}
+                />
+              </label>
+
+              {/* Validation feedback */}
+              {!solutionDescription.trim() && (
+                <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex gap-2">
+                  <span className="text-amber-600 text-lg mt-0.5">⚠</span>
+                  <div>
+                    <p className="text-[12px] font-medium text-amber-900">Explanation required</p>
+                    <p className="text-[12px] text-amber-700">Please describe the steps and scripts you executed.</p>
+                  </div>
+                </div>
+              )}
+
+              {solutionDescription.length > 0 && solutionDescription.length < 50 && (
+                <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 flex gap-2">
+                  <span className="text-blue-600 text-lg mt-0.5">💡</span>
+                  <p className="text-[12px] text-blue-700">Add more detail: include the exact commands you ran and what you learned.</p>
+                </div>
+              )}
+
+              {solutionDescription.length >= 50 && (
+                <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-4 py-3 flex gap-2">
+                  <span className="text-emerald-600 text-lg mt-0.5">✓</span>
+                  <p className="text-[12px] text-emerald-700">Great explanation! Ready to submit and get AI-powered feedback.</p>
+                </div>
+              )}
+
+              <button
+                onClick={handleSubmitReflection}
+                className={`w-full inline-flex items-center justify-center gap-2 rounded-full px-6 py-4 text-[15px] font-semibold transition-all ${
+                  verifying || !solutionDescription.trim()
+                    ? "bg-primary/50 text-white/70 cursor-not-allowed"
+                    : "bg-gradient-to-r from-primary to-primary/80 text-white hover:shadow-lg hover:scale-105 hover:shadow-primary/25"
+                }`}
+                disabled={verifying || !solutionDescription.trim()}>
+                {verifying
+                  ? <><RefreshCw className="h-5 w-5 animate-spin" /> Generating AI Feedback…</>
+                  : <>
+                      <span>Submit & Get AI Feedback</span>
+                      <span className="text-lg">→</span>
+                    </>}
+              </button>
+            </div>
+          )}
+
           {/* Stop */}
           <button onClick={handleStop} disabled={stopping}
             className="w-full inline-flex items-center justify-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 py-3 text-[13px] font-medium text-red-600 hover:bg-red-100 transition disabled:opacity-50">
             <StopCircle className="h-4 w-4" />
-            {stopping ? "Stopping…" : evalResult?.passed ? "Complete & End Lab" : "End Mission & Clean Up"}
+            {stopping ? "Stopping…" : evalResult && (evalResult.status === "PASSED" || evalResult.status === "PARTIAL") ? "Complete & End Lab" : "End Mission & Clean Up"}
           </button>
 
           <button onClick={() => navigate({ to: "/challenges" })} className="btn-ghost w-full text-center text-[13px]">

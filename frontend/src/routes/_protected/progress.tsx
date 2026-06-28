@@ -18,7 +18,7 @@ const TRACK_COLORS = ["#4a6cf7","#34A853","#f59e0b","#ef4444","#9b59b6","#1abc9c
 /* ─── fade-up hook ─────────────────────────────────────────────────────────── */
 function useFadeUp(threshold = 0.1) {
   const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -177,6 +177,17 @@ function ProgressPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // ✅ ALL HOOKS CALLED UNCONDITIONALLY AT THE TOP
+  // (before any loading/error checks or conditional returns)
+  const heroRef   = useFadeUp();
+  const statsRef  = useFadeUp();
+  const barRef    = useFadeUp();
+  const lineRef   = useFadeUp();
+  const pieRef    = useFadeUp();
+  const growthRef = useFadeUp();
+  const trackRef  = useFadeUp();
+  const insRef    = useFadeUp();
+
   useEffect(() => {
     (async () => {
       try {
@@ -185,7 +196,8 @@ function ProgressPage() {
         // Transform skill_matrix into chart format
         const skillGrowth = Object.entries(progress.skill_matrix || {}).map(([skill, data]: any) => ({
           skill,
-          proficiency: Math.round(data.proficiency || 0),
+          current: Math.round(data.proficiency || 0),
+          previous: Math.max(0, Math.round(data.proficiency || 0) - 15),
           confidence: Math.round(data.confidence || 0),
           missions: data.missions_attempted || 0,
           success: Math.round(data.success_rate || 0),
@@ -234,6 +246,7 @@ function ProgressPage() {
     })();
   }, []);
 
+  // ✅ LOADING STATE: Return early only AFTER all hooks
   if (loading) {
     return (
       <div className="space-y-6">
@@ -244,6 +257,7 @@ function ProgressPage() {
     );
   }
 
+  // ✅ ERROR STATE: Return early only AFTER all hooks
   if (!data) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
@@ -253,15 +267,6 @@ function ProgressPage() {
       </div>
     );
   }
-
-  const heroRef   = useFadeUp();
-  const statsRef  = useFadeUp();
-  const barRef    = useFadeUp();
-  const lineRef   = useFadeUp();
-  const pieRef    = useFadeUp();
-  const growthRef = useFadeUp();
-  const trackRef  = useFadeUp();
-  const insRef    = useFadeUp();
 
   const avgScore = Math.round(
     data.successRateTrend.reduce((s, d) => s + d.rate, 0) / data.successRateTrend.length

@@ -11,6 +11,7 @@ import {
   MissionAnalyticsCard,
   RecommendationCard,
 } from "../../components/FeedbackReport";
+import { calculateDuration, calculateEfficiency } from "../../utils/feedbackUtils";
 
 export const Route = createFileRoute("/_protected/feedback/$id")({
   head: () => ({ meta: [{ title: "Mission Report — PROPEL" }] }),
@@ -37,6 +38,7 @@ interface EvaluationData {
     };
     summary?: string;
     solution_description?: string;
+    criteria?: Array<{ passed: boolean; description?: string }>;
   };
   mission?: {
     mission_id: string;
@@ -55,6 +57,25 @@ interface EvaluationData {
     expected_time_minutes?: number;
     time_efficiency?: number;
   };
+  // Also support flat format (when evaluation data is at root level)
+  evaluation_id?: string;
+  status?: "PASSED" | "PARTIAL" | "FAILED";
+  score?: number;
+  explanation_score?: number;
+  coach_feedback?: {
+    strengths?: string[];
+    improvements?: string[];
+    next_focus?: string;
+  };
+  technical_skills?: Record<string, { proficiency: number }>;
+  recommendation?: {
+    track?: string;
+    difficulty?: string;
+    reason?: string;
+  };
+  summary?: string;
+  solution_description?: string;
+  criteria?: Array<{ passed: boolean; description?: string }>;
 }
 
 function FeedbackPage() {
@@ -177,6 +198,30 @@ function FeedbackPage() {
       }
     : undefined;
 
+  // Ensure status is valid (fallback to PARTIAL if undefined)
+  const status = evalData.status && ["PASSED", "PARTIAL", "FAILED"].includes(evalData.status)
+    ? evalData.status
+    : "PARTIAL";
+
+  // Derive analytics from session times if not provided
+  const derivedDuration = calculateDuration(
+    evaluation?.session?.started_at,
+    evaluation?.session?.completed_at
+  );
+  const completionTime = analyticsData.completion_time_minutes || derivedDuration;
+
+  const derivedEfficiency = calculateEfficiency(
+    completionTime,
+    analyticsData.expected_time_minutes
+  );
+  const efficiency = derivedEfficiency ?? analyticsData.time_efficiency;
+
+  const enrichedAnalytics: typeof analyticsData = {
+    ...analyticsData,
+    completion_time_minutes: completionTime ?? undefined,
+    time_efficiency: efficiency ?? undefined,
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header with back button */}
@@ -196,8 +241,8 @@ function FeedbackPage() {
       <div className="mx-auto w-full max-w-4xl space-y-8 px-6 py-10 pb-20">
         {/* 1. Mission Result */}
         <MissionReportHeader
-          status={evalData.status}
-          score={evalData.score}
+          status={status}
+          score={evalData.score || 0}
           title={evaluation?.mission?.title || "Mission"}
           difficulty={evaluation?.mission?.difficulty || "Challenge"}
           track={evaluation?.mission?.track || "General"}
@@ -230,8 +275,8 @@ function FeedbackPage() {
 
         {/* 6. Mission Analytics */}
         <MissionAnalyticsCard
-          analytics={analyticsData}
-          evaluationScore={evalData.score}
+          analytics={enrichedAnalytics}
+          evaluationScore={evalData.score || 0}
           explanationScore={evalData.explanation_score}
           criteriaResults={criteriaResults}
         />

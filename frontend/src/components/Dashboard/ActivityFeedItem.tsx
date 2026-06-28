@@ -34,8 +34,8 @@ export function ActivityFeedItem({ mission }: ActivityFeedItemProps) {
   const completedDate = new Date(mission.completed_at);
   const now = new Date();
   const diffMs = now.getTime() - completedDate.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const diffHours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const diffDays = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+  const diffHours = Math.max(0, Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)));
 
   let timeAgo = "";
   if (diffDays > 0) {

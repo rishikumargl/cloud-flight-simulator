@@ -1,6 +1,7 @@
 import { ActivityFeedItem } from "./ActivityFeedItem";
 
 interface MissionItem {
+  evaluation_id: string;
   mission_id: string;
   title: string;
   track: string;
@@ -31,8 +32,8 @@ export function ActivityFeed({ missions }: ActivityFeedProps) {
       <h2 className="mono-label text-primary">RECENT ACTIVITY</h2>
 
       <div className="space-y-2 max-h-64 overflow-y-auto">
-        {missions.map((mission) => (
-          <ActivityFeedItem key={mission.mission_id} mission={mission} />
+        {missions.map((mission, idx) => (
+          <ActivityFeedItem key={mission.evaluation_id || `mission-${idx}`} mission={mission} />
         ))}
       </div>
     </div>

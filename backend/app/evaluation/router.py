@@ -178,6 +178,148 @@ async def get_evaluation(
         )
 
 
+@router.post("/evaluate/{session_id}/verify")
+async def verify_technical(
+    session_id: str,
+    current_user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """POST /evaluate/{session_id}/verify
+
+    Verify ONLY technical criteria against live GCP state.
+
+    Does NOT run LLM evaluation.
+    Does NOT ask for explanation.
+    Returns: status, score, criteria results, mission metadata, session info.
+
+    Response:
+    {
+        "success": true,
+        "data": {
+            "status": "PASSED|PARTIAL|FAILED",
+            "score": 85,
+            "passed_criteria": [...],
+            "failed_criteria": [...],
+            "completion_time_minutes": 45,
+            "expected_time_minutes": 30,
+            "time_efficiency": 1.5,
+            "mission": {...},
+            "session": {...}
+        }
+    }
+    """
+    try:
+        # Load session to verify ownership
+        session = db.query(ChallengeSession).filter(
+            ChallengeSession.session_id == session_id
+        ).first()
+
+        if not session:
+            return JSONResponse(
+                status_code=status.HTTP_404_NOT_FOUND,
+                content={
+                    "success": False,
+                    "error": {"code": "SESSION_NOT_FOUND", "message": "Session not found"}
+                }
+            )
+
+        # Verify user owns this session
+        if session.user_id != current_user.user_id:
+            return JSONResponse(
+                status_code=status.HTTP_403_FORBIDDEN,
+                content={
+                    "success": False,
+                    "error": {"code": "FORBIDDEN", "message": "Access denied"}
+                }
+            )
+
+        # Perform technical evaluation (no explanation, no LLM)
+        service = EvaluationService()
+        evaluation = service.evaluate(session_id, db, solution_description=None)
+
+        # Extract only technical results
+        criteria_data = evaluation.criteria_results.get("criteria", [])
+        passed_criteria = [c for c in criteria_data if c.get("passed")]
+        failed_criteria = [c for c in criteria_data if not c.get("passed")]
+
+        # Determine status from score
+        score = int(evaluation.percentage)
+        if score >= 80:
+            status_val = "PASSED"
+        elif score >= 50:
+            status_val = "PARTIAL"
+        else:
+            status_val = "FAILED"
+
+        # Calculate time metrics
+        analytics = EvaluationService.get_mission_analytics(session_id, db)
+
+        # Get mission metadata
+        from app.scenarios.models import Mission
+        mission = db.query(Mission).filter(Mission.mission_id == session.mission_id).first()
+        mission_data = {
+            "mission_id": str(mission.mission_id) if mission else "",
+            "title": mission.title if mission else "",
+            "track": mission.track if mission else "",
+            "difficulty": mission.difficulty if mission else "",
+            "business_context": mission.business_context if mission else "",
+        }
+
+        response_data = {
+            "status": status_val,
+            "score": score,
+            "passed_criteria": passed_criteria,
+            "failed_criteria": failed_criteria,
+            "completion_time_minutes": analytics.get("completion_time_minutes"),
+            "expected_time_minutes": analytics.get("expected_time_minutes"),
+            "time_efficiency": analytics.get("time_efficiency"),
+            "mission": mission_data,
+            "session": {
+                "session_id": str(session.session_id),
+                "started_at": session.started_at.isoformat() if session.started_at else None,
+                "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+            }
+        }
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "success": True,
+                "data": response_data
+            }
+        )
+
+    except ValueError as e:
+        print(f"[ERROR] POST /evaluate/{session_id}/verify validation: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "success": False,
+                "error": {"code": "VALIDATION_ERROR", "message": str(e)}
+            }
+        )
+
+    except FileNotFoundError as e:
+        print(f"[ERROR] POST /evaluate/{session_id}/verify GCP auth: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "success": False,
+                "error": {"code": "GCP_AUTH_ERROR", "message": "GCP authentication failed"}
+            }
+        )
+
+    except Exception as e:
+        print(f"[ERROR] POST /evaluate/{session_id}/verify: {str(e)}")
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "success": False,
+                "error": {"code": "INTERNAL_ERROR", "message": "Verification failed"}
+            }
+        )
+
+
 @router.post("/evaluate/{session_id}/run")
 async def run_evaluation(
     session_id: str,
@@ -187,23 +329,28 @@ async def run_evaluation(
 ):
     """POST /evaluate/{session_id}/run
 
-    Trigger live evaluation against GCP resource state.
+    Final reflection evaluation with LLM coaching.
 
-    Always evaluates against live GCP state, never cached results.
-    Fetches VM metadata, status, and tags from Compute API.
-    Validates against mission success criteria expected_state.
+    Uses existing technical evaluation result.
+    Adds learner's solution explanation.
+    Runs LLM to generate coaching, skills, recommendation.
+    Stores complete feedback report.
 
-    Returns enriched response with:
-    - evaluation (score, status, deterministic checks)
-    - analytics (completion_time, efficiency)
-    - coach (strengths, weaknesses, recommendation)
-    - recommendation (next difficulty, topic)
+    Returns full feedback report:
+    - evaluation (with explanation_score)
+    - mission metadata
+    - analytics
+    - coach feedback (AI generated)
+    - recommendation (AI generated)
+    - session info
 
     Response:
     {
         "success": true,
         "data": {
             "evaluation": {...},
+            "mission": {...},
+            "session": {...},
             "analytics": {...},
             "coach": {...},
             "recommendation": {...}
@@ -235,9 +382,22 @@ async def run_evaluation(
                 }
             )
 
-        # Trigger live evaluation with learner's solution explanation
-        service = EvaluationService()
-        evaluation = service.evaluate(session_id, db, solution_description=request.solution_description)
+        # Check if evaluation already exists (from /verify)
+        existing_eval = db.query(Evaluation).filter(
+            Evaluation.session_id == session_id
+        ).first()
+
+        # If no evaluation exists yet, run technical evaluation first
+        if not existing_eval:
+            service = EvaluationService()
+            evaluation = service.evaluate(session_id, db, solution_description=None)
+        else:
+            # Use existing evaluation and just update with explanation
+            evaluation = existing_eval
+            evaluation.solution_description = request.solution_description
+            db.add(evaluation)
+            db.commit()
+            db.refresh(evaluation)
 
         # Build enriched response
         eval_response = _build_response(evaluation)

@@ -109,9 +109,43 @@ const apiService = {
     }
   },
 
-  // Evaluation: Run live evaluation
-  // Normalizes enriched response with evaluation + analytics + coach + recommendation
-  // Flattens deterministic_checks { passed: [], failed: [] } into single criteria array
+  // Evaluation: Technical verification only (no LLM)
+  // Returns: status, score, passed_criteria, failed_criteria, time metrics, mission metadata, session info
+  verifyMission: async (session_id: string) => {
+    try {
+      const response = await axiosClient.post(`/evaluate/${session_id}/verify`);
+      const data = response.data.data;
+
+      // Normalize criteria to have passed and description fields
+      const normalizeCriteria = (criteria: any[]) =>
+        criteria.map((c) => ({
+          description: c.description || c.details || c.criterion_id || "Criteria check",
+          passed: c.passed !== false,
+          weight: c.weight,
+        }));
+
+      // Flatten criteria into single array for checklist display
+      const criteria = [
+        ...normalizeCriteria(data.passed_criteria || []),
+        ...normalizeCriteria(data.failed_criteria || []),
+      ];
+
+      return {
+        status: data.status,
+        score: data.score,
+        criteria,
+        completion_time_minutes: data.completion_time_minutes,
+        expected_time_minutes: data.expected_time_minutes,
+        time_efficiency: data.time_efficiency,
+        mission: data.mission || {},
+        session: data.session || {},
+      };
+    } catch (error) {
+      console.error("Failed to verify mission:", error);
+      throw error;
+    }
+  },
+
   runEvaluation: async (session_id: string, payload?: { solution_description: string }) => {
     try {
       const response = await axiosClient.post(`/evaluate/${session_id}/run`, payload || {});

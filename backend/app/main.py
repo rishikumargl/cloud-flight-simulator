@@ -6,6 +6,7 @@ from app.challenges.router import router as challenges_router
 from app.scenarios.router import router as scenarios_router
 from app.evaluation.router import router as evaluation_router
 from app.admin.router import router as admin_router
+from app.progress.router import router as progress_router
 from app.database import SessionLocal
 
 app = FastAPI(
@@ -39,6 +40,7 @@ app.include_router(challenges_router)
 app.include_router(scenarios_router)
 app.include_router(evaluation_router)
 app.include_router(admin_router)
+app.include_router(progress_router)
 
 
 @app.on_event("startup")
