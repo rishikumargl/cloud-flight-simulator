@@ -151,12 +151,13 @@ function FeedbackPage() {
     );
   }
 
-  // Extract analytics data from evaluation response
+  // Extract data from evaluation response (handle both nested and flat formats)
+  const evalData = evaluation.evaluation || evaluation;
   const analyticsData = evaluation.analytics || {};
-  const criteriaResults = evaluation.deterministic_checks
+  const criteriaResults = evalData.criteria
     ? {
-        passed: evaluation.deterministic_checks.passed?.length || 0,
-        failed: evaluation.deterministic_checks.failed?.length || 0,
+        passed: evalData.criteria.filter((c: any) => c.passed).length,
+        failed: evalData.criteria.filter((c: any) => !c.passed).length,
       }
     : undefined;
 
@@ -179,8 +180,8 @@ function FeedbackPage() {
       <div className="mx-auto w-full max-w-4xl space-y-8 px-6 py-10 pb-20">
         {/* 1. Mission Result */}
         <MissionReportHeader
-          status={evaluation.status}
-          score={evaluation.score}
+          status={evalData.status}
+          score={evalData.score}
           title="Mission Completed"
           difficulty="Challenge"
           track="Learning"
@@ -189,40 +190,40 @@ function FeedbackPage() {
         />
 
         {/* 2. Mission Debrief */}
-        {evaluation.summary && (
-          <MissionSummaryCard summary={evaluation.summary} />
+        {evalData.summary && (
+          <MissionSummaryCard summary={evalData.summary} />
         )}
 
         {/* 3. Your Solution */}
-        {evaluation.solution_description && (
-          <YourSolutionCard solution={evaluation.solution_description} />
+        {evalData.solution_description && (
+          <YourSolutionCard solution={evalData.solution_description} />
         )}
 
         {/* 4. AI Review */}
-        {evaluation.coach_feedback && (
+        {evalData.coach_feedback && (
           <ExplanationReviewCard
-            score={evaluation.explanation_score || 0}
-            feedback={evaluation.coach_feedback}
+            score={evalData.explanation_score || 0}
+            feedback={evalData.coach_feedback}
           />
         )}
 
         {/* 5. Technical Skills */}
-        {evaluation.technical_skills && Object.keys(evaluation.technical_skills).length > 0 && (
-          <SkillBreakdownCard skills={evaluation.technical_skills} />
+        {evalData.technical_skills && Object.keys(evalData.technical_skills).length > 0 && (
+          <SkillBreakdownCard skills={evalData.technical_skills} />
         )}
 
         {/* 6. Mission Analytics */}
         <MissionAnalyticsCard
           analytics={analyticsData}
-          evaluationScore={evaluation.score}
-          explanationScore={evaluation.explanation_score}
+          evaluationScore={evalData.score}
+          explanationScore={evalData.explanation_score}
           criteriaResults={criteriaResults}
         />
 
         {/* 7. Recommended Next Mission */}
-        {evaluation.recommendation && (
+        {evalData.recommendation && (
           <RecommendationCard
-            recommendation={evaluation.recommendation}
+            recommendation={evalData.recommendation}
             onStartRecommended={handleStartRecommended}
             onReturnDashboard={handleReturnDashboard}
             isLoading={starting}
@@ -230,7 +231,7 @@ function FeedbackPage() {
         )}
 
         {/* Fallback: No recommendation */}
-        {!evaluation.recommendation && (
+        {!evalData.recommendation && (
           <div className="rounded-2xl border border-border bg-surface p-8 text-center">
             <p className="text-foreground/60 mb-4">Ready for your next challenge?</p>
             <button

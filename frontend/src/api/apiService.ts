@@ -123,7 +123,7 @@ const apiService = {
         ...data.evaluation.deterministic_checks.failed,
       ];
 
-      // Return normalized response
+      // Return complete evaluation response with all coaching data
       return {
         evaluation: {
           evaluation_id: data.evaluation.evaluation_id,
@@ -131,7 +131,13 @@ const apiService = {
           status: data.evaluation.status,
           score: data.evaluation.score,
           evaluated_at: data.evaluation.evaluated_at,
-          criteria, // Flattened array
+          explanation_score: data.evaluation.explanation_score,
+          coach_feedback: data.evaluation.coach_feedback,
+          technical_skills: data.evaluation.technical_skills,
+          recommendation: data.evaluation.recommendation,
+          summary: data.evaluation.summary,
+          solution_description: data.evaluation.solution_description,
+          criteria, // Flattened array for task checklist
         },
         analytics: data.analytics,
         coach: data.coach,
