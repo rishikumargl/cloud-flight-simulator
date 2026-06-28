@@ -74,17 +74,19 @@ function Dashboard() {
     const loadProgress = async () => {
       try {
         setLoading(true);
-        const result = await api.getProgress();
-        if (result && Object.keys(result).length > 0) {
-          setProgress(result);
-        } else {
-          // Fallback to mock data for demo when API unavailable
-          console.warn("API progress not available, using mock dashboard data");
-          setProgress(generateMockDashboardData());
+        try {
+          const result = await api.getProgress();
+          // Check if result has meaningful data (at least has stats with total_missions)
+          if (result?.stats?.total_missions && result.stats.total_missions > 0) {
+            setProgress(result);
+            return;
+          }
+        } catch (apiErr) {
+          console.warn("API call failed or returned empty:", apiErr);
         }
-      } catch (err: any) {
-        console.warn("Failed to load progress from API, using mock data:", err?.message);
-        // Graceful fallback to mock data
+
+        // Always use mock data for better demo experience
+        console.warn("Using mock dashboard data for demo");
         setProgress(generateMockDashboardData());
       } finally {
         setLoading(false);
