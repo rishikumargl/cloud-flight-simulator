@@ -18,32 +18,42 @@ export const Route = createFileRoute("/_protected/feedback/$id")({
 });
 
 interface EvaluationData {
-  evaluation_id: string;
-  session_id: string;
-  status: "PASSED" | "PARTIAL" | "FAILED";
-  score: number;
-  explanation_score?: number;
-  coach_feedback?: {
-    strengths?: string[];
-    improvements?: string[];
-    next_focus?: string;
+  evaluation?: {
+    evaluation_id: string;
+    session_id: string;
+    status: "PASSED" | "PARTIAL" | "FAILED";
+    score: number;
+    explanation_score?: number;
+    coach_feedback?: {
+      strengths?: string[];
+      improvements?: string[];
+      next_focus?: string;
+    };
+    technical_skills?: Record<string, { proficiency: number }>;
+    recommendation?: {
+      track?: string;
+      difficulty?: string;
+      reason?: string;
+    };
+    summary?: string;
+    solution_description?: string;
   };
-  technical_skills?: Record<string, { proficiency: number }>;
-  recommendation?: {
-    track?: string;
-    difficulty?: string;
-    reason?: string;
+  mission?: {
+    mission_id: string;
+    title: string;
+    track: string;
+    difficulty: string;
+    business_context?: string;
   };
-  summary?: string;
-  solution_description?: string;
+  session?: {
+    session_id: string;
+    started_at?: string;
+    completed_at?: string;
+  };
   analytics?: {
     completion_time_minutes?: number;
     expected_time_minutes?: number;
     time_efficiency?: number;
-  };
-  deterministic_checks?: {
-    passed: Array<{ criterion_id: string; details: string }>;
-    failed: Array<{ criterion_id: string; details: string }>;
   };
 }
 
@@ -188,11 +198,11 @@ function FeedbackPage() {
         <MissionReportHeader
           status={evalData.status}
           score={evalData.score}
-          title="Mission Completed"
-          difficulty="Challenge"
-          track="Learning"
+          title={evaluation?.mission?.title || "Mission"}
+          difficulty={evaluation?.mission?.difficulty || "Challenge"}
+          track={evaluation?.mission?.track || "General"}
           completionTimeMinutes={analyticsData.completion_time_minutes}
-          completedAt={new Date().toISOString()}
+          completedAt={evaluation?.session?.completed_at || new Date().toISOString()}
         />
 
         {/* 2. Mission Debrief */}

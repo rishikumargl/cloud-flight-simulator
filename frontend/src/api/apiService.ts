@@ -123,7 +123,7 @@ const apiService = {
         ...data.evaluation.deterministic_checks.failed,
       ];
 
-      // Return complete evaluation response with all coaching data
+      // Return complete evaluation response with mission metadata
       return {
         evaluation: {
           evaluation_id: data.evaluation.evaluation_id,
@@ -139,6 +139,8 @@ const apiService = {
           solution_description: data.evaluation.solution_description,
           criteria, // Flattened array for task checklist
         },
+        mission: data.mission || {},
+        session: data.session || {},
         analytics: data.analytics,
         coach: data.coach,
         recommendation: data.recommendation,
@@ -183,7 +185,7 @@ const apiService = {
   getRecentActivities: async () => {
     try {
       const progress = await apiService.getProgress();
-      return (progress.recent_missions || []).slice(0, 5).map((m) => ({
+      return (progress.recent_missions || []).slice(0, 5).map((m: any) => ({
         id: m.mission_id,
         icon: "✓",
         title: m.title,
@@ -199,13 +201,13 @@ const apiService = {
   getProgressCharts: async () => {
     try {
       const progress = await apiService.getProgress();
-      const skills = progress.skill_matrix || {};
+      const skills = (progress as any).skill_matrix || {};
       return {
-        skillGrowth: Object.entries(skills).map(([skill, data]) => ({
+        skillGrowth: Object.entries(skills).map(([skill, data]: [string, any]) => ({
           skill,
           proficiency: data.proficiency || 0,
         })),
-        stats: progress.stats,
+        stats: (progress as any).stats,
       };
     } catch {
       return {

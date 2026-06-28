@@ -129,11 +129,33 @@ async def get_evaluation(
 
         # Return cached result (or null if not evaluated yet)
         if evaluation:
+            from app.scenarios.models import Mission
+            mission = db.query(Mission).filter(Mission.mission_id == session.mission_id).first()
+
+            eval_response = _build_response(evaluation)
+
+            # Add mission metadata to response
+            response_data = {
+                "evaluation": eval_response,
+                "mission": {
+                    "mission_id": str(mission.mission_id) if mission else "",
+                    "title": mission.title if mission else "",
+                    "track": mission.track if mission else "",
+                    "difficulty": mission.difficulty if mission else "",
+                    "business_context": mission.business_context if mission else "",
+                } if mission else {},
+                "session": {
+                    "session_id": str(session.session_id),
+                    "started_at": session.started_at.isoformat() if session.started_at else None,
+                    "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+                }
+            }
+
             return JSONResponse(
                 status_code=status.HTTP_200_OK,
                 content={
                     "success": True,
-                    "data": _build_response(evaluation)
+                    "data": response_data
                 }
             )
         else:
@@ -251,9 +273,24 @@ async def run_evaluation(
         recommendation = ScenarioService().get_recommendation(db, str(current_user.user_id))
         recommendation_data = recommendation if isinstance(recommendation, dict) else recommendation.model_dump(mode="json")
 
-        # Return enriched response
+        # Add mission metadata to response
+        mission_data = {
+            "mission_id": str(mission.mission_id) if mission else "",
+            "title": mission.title if mission else "",
+            "track": mission.track if mission else "",
+            "difficulty": mission.difficulty if mission else "",
+            "business_context": mission.business_context if mission else "",
+        }
+
+        # Return enriched response with mission metadata
         enriched_response = {
             "evaluation": eval_response,
+            "mission": mission_data,
+            "session": {
+                "session_id": str(session.session_id),
+                "started_at": session.started_at.isoformat() if session.started_at else None,
+                "completed_at": session.completed_at.isoformat() if session.completed_at else None,
+            },
             "analytics": analytics,
             "coach": coach_data,
             "recommendation": recommendation_data
