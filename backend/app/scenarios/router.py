@@ -86,13 +86,16 @@ async def generate_scenario(
 
     except ValueError as e:
         db.rollback()
+        print(f"[VALIDATION_ERROR] {str(e)}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=error_response("VALIDATION_ERROR", str(e)),
         )
     except Exception as e:
         db.rollback()
-        print(f"[ERROR] generate_scenario failed: {e}")
+        print(f"[ERROR] generate_scenario failed: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=error_response("INTERNAL_ERROR", "Failed to generate scenario"),

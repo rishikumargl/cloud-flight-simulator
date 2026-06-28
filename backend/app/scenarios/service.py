@@ -292,13 +292,23 @@ class ScenarioService:
 
         # Build learner context for prompt
         prior_titles = [m.title for m in previous_missions[:3]]
+
+        # Extract problem types (fault types) from prior missions to avoid repetition
+        prior_problem_types = []
+        for mission in previous_missions[:5]:
+            for criterion in mission.success_criteria:
+                # criterion is a SuccessCriteria Pydantic model, not a dict
+                if criterion.fault_configuration and criterion.fault_configuration.type:
+                    prior_problem_types.append(criterion.fault_configuration.type)
+        prior_problem_types = list(set(prior_problem_types))  # Deduplicate
+
         success_rate = previous_performance.get("success_rate", 0)
         avg_score = previous_performance.get("avg_score", 0)
         total_attempts = previous_performance.get("total_attempts", 0)
 
         # Define the prompt template for COMPUTE ENGINE ONLY (e2-micro, free tier zones)
         prompt_template = PromptTemplate(
-            input_variables=["difficulty", "zone", "prior_missions", "success_rate", "avg_score", "total_attempts"],
+            input_variables=["difficulty", "zone", "prior_missions", "prior_problem_types", "success_rate", "avg_score", "total_attempts"],
             template="""You are an expert Google Cloud instructor specializing in incident-response scenarios on Compute Engine. Generate a realistic, educational GCP Compute Engine mission where learners repair a deliberately broken VM.
 
 MISSION STYLE: Incident Response Labs
@@ -321,19 +331,21 @@ Learner Profile:
 - Prior Attempts: {total_attempts}
 - Success Rate: {success_rate:.1f}%
 - Average Score: {avg_score:.1f}%
-- Recent Missions: {prior_missions}
+- Recent Mission Titles: {prior_missions}
+- Problem Types Already Trained: {prior_problem_types}
 
 Generate a NEW and UNIQUE Compute Engine incident-response mission that:
 1. Teaches DIFFERENT practical debugging and repair skills each time
 2. Matches the {difficulty} level
 3. AVOIDS these recent missions: {prior_missions}
-4. Personalizes based on learner success rate: {success_rate:.1f}%
-5. Includes hands-on GCP Console troubleshooting tasks
-6. Uses ONLY e2-micro machine type (free tier)
-7. GENERATES repair criteria with expected_state + fault_configuration
+4. AVOIDS these problem types already trained: {prior_problem_types}
+5. Personalizes based on learner success rate: {success_rate:.1f}%
+6. Includes hands-on GCP Console troubleshooting tasks
+7. Uses ONLY e2-micro machine type (free tier)
+8. GENERATES repair criteria with expected_state + fault_configuration
 
 Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
-{{{{
+{{
   "track": "COMPUTE",
   "difficulty": "{difficulty}",
   "title": "INCIDENT RESPONSE: Fix the... (e.g., 'Fix the Misconfigured Web Server', 'Repair the Broken Startup Script', 'Restore the Corrupted Metadata')",
@@ -344,64 +356,64 @@ Return ONLY valid JSON (no markdown, no explanation) with this exact structure:
     "3. Third diagnostic or repair step or validation"
   ],
   "success_criteria": [
-    {{{{
+    {{
       "criterion_id": "unique-id-1",
       "description": "SPECIFIC repair criterion (e.g., 'Metadata is corrected', 'Startup script is fixed', 'VM status is RUNNING')",
       "resource_type": "compute_instance",
-      "expected_state": {{{{
+      "expected_state": {{
         "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro",
-        "metadata": {{{{"key": "value"}}}},
+        "metadata": {{"key": "value"}},
         "status": "RUNNING"
-      }}}},
+      }},
       "weight": 34,
-      "fault_configuration": {{{{
+      "fault_configuration": {{
         "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
-        "payload": {{{{"metadata_key": "wrong_value"}}}} or "#!/bin/bash\\nexit 1" or ["tag1", "tag2"],
+        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1", "tag2"],
         "description": "Explanation of what is broken and why"
-      }}}}
-    }}}},
-    {{{{
+      }}
+    }},
+    {{
       "criterion_id": "unique-id-2",
       "description": "SECOND repair criterion (testing different aspect of the same broken VM)",
       "resource_type": "compute_instance",
-      "expected_state": {{{{
+      "expected_state": {{
         "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro",
-        "metadata": {{{{"key": "value"}}}},
+        "metadata": {{"key": "value"}},
         "status": "RUNNING"
-      }}}},
+      }},
       "weight": 33,
-      "fault_configuration": {{{{
+      "fault_configuration": {{
         "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
-        "payload": {{{{"metadata_key": "wrong_value"}}}} or "#!/bin/bash\\nexit 1" or ["tag1"],
+        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1"],
         "description": "Explanation of the second fault"
-      }}}}
-    }}}},
-    {{{{
+      }}
+    }},
+    {{
       "criterion_id": "unique-id-3",
       "description": "THIRD repair criterion (final validation or readiness check)",
       "resource_type": "compute_instance",
-      "expected_state": {{{{
+      "expected_state": {{
         "name_suffix": "descriptive-name-for-this-mission",
         "machine_type": "e2-micro",
-        "metadata": {{{{"key": "value"}}}},
+        "metadata": {{"key": "value"}},
         "status": "RUNNING"
-      }}}},
+      }},
       "weight": 33,
-      "fault_configuration": {{{{
+      "fault_configuration": {{
         "type": "CORRUPT_METADATA or STARTUP_SCRIPT_CRASH or MISCONFIGURED_TAGS",
-        "payload": {{{{"metadata_key": "wrong_value"}}}} or "#!/bin/bash\\nexit 1" or ["tag1"],
+        "payload": {{"metadata_key": "wrong_value"}} or "#!/bin/bash\\nexit 1" or ["tag1"],
         "description": "Explanation of the third fault"
-      }}}}
-    }}}}
+      }}
+    }}
   ],
   "time_limit_minutes": 45
-}}}}
+}}
 
 FAULT TYPE GUIDANCE:
 - STARTUP_SCRIPT_CRASH: payload is a bash script that fails (e.g., "#!/bin/bash\\nexit 1")
-- CORRUPT_METADATA: payload is a dict of {{{{metadata_key: wrong_value}}}} (e.g., {{"environment": "broken"}})
+- CORRUPT_METADATA: payload is a dict of {{metadata_key: wrong_value}} (e.g., {{"environment": "broken"}})
 - MISCONFIGURED_TAGS: payload is a list of wrong tags (e.g., ["http-server"] instead of ["http-server", "https-server", "lb-server"])
 
 CRITICAL RULES:
@@ -446,6 +458,7 @@ CRITICAL RULES:
                     "difficulty": difficulty,
                     "zone": zone,
                     "prior_missions": json.dumps(prior_titles),
+                    "prior_problem_types": json.dumps(prior_problem_types) if prior_problem_types else "[]",
                     "success_rate": success_rate,
                     "avg_score": avg_score,
                     "total_attempts": total_attempts,

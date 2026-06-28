@@ -7,11 +7,15 @@ from uuid import uuid4
 
 try:
     from google.cloud import compute_v1, resourcemanager_v3
+    from google.iam.v1 import policy_pb2
+    from google.type import expr_pb2
     from google.oauth2 import service_account
 except ImportError:
     # Google Cloud SDK packages not installed
     compute_v1 = None
     resourcemanager_v3 = None
+    policy_pb2 = None
+    expr_pb2 = None
     service_account = None
 
 from sqlalchemy.orm import Session
@@ -82,16 +86,27 @@ class ChallengeService:
             projects_client = resourcemanager_v3.ProjectsClient(credentials=credentials)
             policy = projects_client.get_iam_policy(request={"resource": project_name})
 
-            policy.bindings.add(
-                role="roles/browser",
-                members=[f"user:{user_email}"]
-            )
-            policy.bindings.add(
-                role="roles/compute.viewer",
-                members=[f"user:{user_email}"]
-            )
+            # Create bindings (use google.iam.v1.policy_pb2.Binding)
+            member = f"user:{user_email}"
 
-            projects_client.set_iam_policy(request={"resource": project_name, "policy": policy})
+            binding1 = policy_pb2.Binding()
+            binding1.role = "roles/browser"
+            binding1.members.append(member)
+            policy.bindings.append(binding1)
+
+            binding2 = policy_pb2.Binding()
+            binding2.role = "roles/compute.viewer"
+            binding2.members.append(member)
+            policy.bindings.append(binding2)
+
+            # SetIamPolicyRequest is auto-generated from the resourcemanager API
+            # Call set_iam_policy with a dict containing resource and policy
+            projects_client.set_iam_policy(
+                request={
+                    "resource": project_name,
+                    "policy": policy
+                }
+            )
             print("[IAM-PHASE] Roles granted. Waiting for propagation...")
             time.sleep(5)
         except Exception as e:

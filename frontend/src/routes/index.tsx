@@ -9,7 +9,7 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "CloudFlight — Cloud skills that ship to production" },
+      { title: "PROPEL — Cloud skills that ship to production" },
       { name: "description", content: "AI-native cloud training platform with live GCP environments." },
     ],
   }),
@@ -263,7 +263,7 @@ function Hero() {
         </h1>
         <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-2">
           <p className="max-w-xl text-[17px] leading-relaxed text-foreground">
-            CloudFlight is the AI-native training platform for engineering teams.
+            PROPEL is the AI-native training platform for engineering teams.
             Personalised missions on live GCP environments, automatic grading,
             and learner analytics that show exactly who is ready to ship.
           </p>
@@ -295,15 +295,16 @@ const TRACK_ICONS_LUCIDE: Record<string, React.ReactNode> = {
 
 const TRACK_THEME: Record<string, {
   bg: string; border: string; iconBg: string; iconColor: string;
-  accent: string; labelColor: string; tier: string; missions: number; avg: number;
+  accent: string; labelColor: string; tier: string; missions:string, avg: number;
 }> = {
-  compute:      { bg: "#f0f4ff", border: "#c7d7fc", iconBg: "#dbe6ff", iconColor: "#3b6ef8", accent: "#3b6ef8", labelColor: "#3b6ef8", tier: "Tier I",   missions: 22, avg: 89 },
-  storage:      { bg: "#f0faf4", border: "#b9eecf", iconBg: "#d4f5e2", iconColor: "#1e8a4a", accent: "#1e8a4a", labelColor: "#1e8a4a", tier: "Tier I",   missions: 18, avg: 71 },
-  networking:   { bg: "#f0faff", border: "#b9e6fa", iconBg: "#d0f0fc", iconColor: "#0891b2", accent: "#0891b2", labelColor: "#0891b2", tier: "Tier II",  missions: 20, avg: 86 },
-  security:     { bg: "#fff4f4", border: "#fccfcf", iconBg: "#ffe3e3", iconColor: "#dc2626", accent: "#dc2626", labelColor: "#dc2626", tier: "Tier II",  missions: 24, avg: 93 },
-  devops:       { bg: "#f7f0ff", border: "#dac5fc", iconBg: "#e8d5ff", iconColor: "#7c3aed", accent: "#7c3aed", labelColor: "#7c3aed", tier: "Tier III", missions: 26, avg: 78 },
-  architecture: { bg: "#fffbf0", border: "#f5dfa0", iconBg: "#fef0c0", iconColor: "#b45309", accent: "#b45309", labelColor: "#b45309", tier: "Tier III", missions: 30, avg: 84 },
+  compute:      { bg: "#f0f4ff", border: "#c7d7fc", iconBg: "#dbe6ff", iconColor: "#3b6ef8", accent: "#3b6ef8", labelColor: "#3b6ef8", tier: "Tier I", missions:"Live Infrastructure"  ,avg: 89 },
+  storage:      { bg: "#f0faf4", border: "#b9eecf", iconBg: "#d4f5e2", iconColor: "#1e8a4a", accent: "#1e8a4a", labelColor: "#1e8a4a", tier: "Tier I",missions:"Real Datasets", avg: 71 },
+  networking:   { bg: "#f0faff", border: "#b9e6fa", iconBg: "#d0f0fc", iconColor: "#0891b2", accent: "#0891b2", labelColor: "#0891b2", tier: "Tier II", missions:"Hybrid Scenarios",avg: 86 },
+  security:     { bg: "#fff4f4", border: "#fccfcf", iconBg: "#ffe3e3", iconColor: "#dc2626", accent: "#dc2626", labelColor: "#dc2626", tier: "Tier II", missions:"Policy Validation",avg: 93 },
+  devops:       { bg: "#f7f0ff", border: "#dac5fc", iconBg: "#e8d5ff", iconColor: "#7c3aed", accent: "#7c3aed", labelColor: "#7c3aed", tier: "Tier III", missions:"CI/CD Pipelines",avg: 78 },
+  architecture: { bg: "#fffbf0", border: "#f5dfa0", iconBg: "#fef0c0", iconColor: "#b45309", accent: "#b45309", labelColor: "#b45309", tier: "Tier III", missions:"System Design",avg: 84 },
 };
+
 
 function TrackCard({ track }: { track: typeof learningTracks[0] }) {
   const theme = TRACK_THEME[track.id] ?? TRACK_THEME.compute;
@@ -405,7 +406,7 @@ function TrackCard({ track }: { track: typeof learningTracks[0] }) {
             textTransform: "uppercase",
             color: "var(--foreground)",
           }}>
-            {theme.missions} missions
+            {theme.missions}
           </span>
         </div>
         <span style={{
@@ -416,7 +417,7 @@ function TrackCard({ track }: { track: typeof learningTracks[0] }) {
           color: theme.accent,
           fontWeight: 600,
         }}>
-          {theme.avg}% avg
+          {/* {theme.avg}% avg */}
         </span>
       </div>
     </div>
@@ -428,14 +429,14 @@ function Tracks() {
     <section id="tracks" className="mx-auto max-w-7xl px-6 py-24">
       <div className="mb-12 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <div className="mono-label mb-3">SIX TRACKS · 140+ MISSIONS</div>
+          <div className="mono-label mb-3">SIX TRACKS · DYNAMIC MISSIONS</div>
           <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
             Skill paths mapped to the<br />work your team actually ships.
           </h2>
         </div>
-        <p className="max-w-sm text-[15px] text-foreground">
+        {/* <p className="max-w-sm text-[15px] text-foreground">
           Hover to preview · click to explore each track.
-        </p>
+        </p> */}
       </div>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
         {learningTracks.map((t) => <TrackCard key={t.id} track={t} />)}
@@ -684,56 +685,97 @@ function OrbitSection() {
 /* ══════════════════════════════════════════════════════════════════
    HOW IT WORKS
 ══════════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════════
+   HANDS-ON CLOUD LEARNING
+══════════════════════════════════════════════════════════════════ */
 function HowItWorks() {
-  const steps = [
-    { n: "01", title: "We profile your engineers",     body: "A 10-minute baseline mission scores each learner across the six tracks. No multiple choice — actual cloud work." },
-    { n: "02", title: "AI assigns the next mission",   body: "Our recommender weighs gaps, recency, team objectives, and difficulty curve to pick what unlocks the most growth." },
-    { n: "03", title: "Live GCP sandbox spins up",     body: "An isolated, budget-capped environment provisions in under 30 seconds. Real services, real bills (we pay)." },
-    { n: "04", title: "Automatic grading + AI mentor", body: "Submissions are graded against infrastructure state, not screenshots. The mentor explains every deduction." },
-  ];
   return (
-    <section id="how" className="border-t border-border bg-surface">
-      <div className="mx-auto max-w-7xl px-6 py-24">
-        <div className="mono-label mb-3">HOW IT WORKS</div>
-        <h2 className="max-w-3xl font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
-          From baseline to billable, in four steps.
+    <section id="how" className="mx-auto max-w-7xl px-6 py-24">
+      <div className="text-center mb-16">
+        <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-2 mb-6">
+          <svg className="h-4 w-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2 1m2-1l-2-1m2 1v2.5" />
+          </svg>
+          <span className="text-[12px] font-semibold text-primary uppercase tracking-wider">HANDS-ON CLOUD LEARNING</span>
+        </div>
+
+        <h2 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1.1] tracking-[-0.03em] text-ink mb-4">
+          Learn cloud the way<br />engineers <span className="text-primary">actually work</span>.
         </h2>
-        <div className="mt-16 grid grid-cols-1 gap-12 md:grid-cols-2">
-          {steps.map((s) => (
-            <div key={s.n} className="flex gap-6 border-t border-border pt-8">
-              <div className="mono-label !text-[0.85rem] !text-primary">{s.n}</div>
-              <div>
-                <h3 className="font-display text-[22px] font-semibold text-ink">{s.title}</h3>
-                <p className="mt-3 text-[15px] leading-relaxed text-foreground">{s.body}</p>
-              </div>
-            </div>
-          ))}
+
+        <p className="mx-auto max-w-2xl text-[16px] leading-relaxed text-foreground">
+          Practice on real Google Cloud infrastructure with guided missions,<br />instant feedback, and automatic grading powered by AI.
+        </p>
+      </div>
+
+      {/* Features grid */}
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-4 mb-16">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-blue-100 text-blue-600 mb-4">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 className="font-semibold text-ink mb-2">Real Cloud Labs</h3>
+          <p className="text-[13px] text-foreground">Spin up live GCP environments in seconds.</p>
+        </div>
+
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-green-100 text-green-600 mb-4">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="font-semibold text-ink mb-2">Guided Missions</h3>
+          <p className="text-[13px] text-foreground">Step-by-step challenges based on real-world scenarios.</p>
+        </div>
+
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-purple-100 text-purple-600 mb-4">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5.36 4.64l-.707-.707M9 12a3 3 0 106 0 3 3 0 00-6 0z" />
+            </svg>
+          </div>
+          <h3 className="font-semibold text-ink mb-2">AI Feedback</h3>
+          <p className="text-[13px] text-foreground">Get instant, actionable insights on your approach.</p>
+        </div>
+
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-orange-100 text-orange-600 mb-4">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="font-semibold text-ink mb-2">Safe & Isolated</h3>
+          <p className="text-[13px] text-foreground">Every environment is isolated, secure, and auto-cleaned.</p>
         </div>
       </div>
-    </section>
-  );
-}
 
-/* ══════════════════════════════════════════════════════════════════
-   STATS / TEAMS
-══════════════════════════════════════════════════════════════════ */
-function Teams() {
-  const stats = [
-    { value: "3.4×",  label: "faster onboarding for cloud-new hires" },
-    { value: "87%",   label: "average mission pass rate after 30 days" },
-    { value: "<60s", label: "to spin up an isolated GCP sandbox" },
-    { value: "6 tracks",  label: "missions across compute, data, security, DevOps" },
-  ];
-  return (
-    <section id="teams" className="mx-auto max-w-7xl px-6 py-24">
-      <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label}>
-            <div className="font-display text-[clamp(2.5rem,5vw,4rem)] font-medium leading-none tracking-[-0.04em] text-ink">{s.value}</div>
-            <div className="mt-3 text-[13px] leading-snug text-foreground">{s.label}</div>
+      {/* CTA Section */}
+      {/* <div className="rounded-[2rem] bg-gradient-to-r from-slate-900 to-slate-800 p-12 text-white md:p-16 flex items-center justify-between gap-8">
+        <div>
+          <h3 className="font-display text-[clamp(1.5rem,4vw,2.5rem)] font-medium leading-[1.1] tracking-[-0.02em]">
+            Stop memorizing cloud.<br />Start <span className="text-primary">building</span> it.
+          </h3>
+          <p className="mt-4 text-[15px] text-foreground/80">
+            Real infrastructure. Real consequences.<br />Real growth.
+          </p>
+        </div>
+        <div className="flex flex-col items-start gap-4 shrink-0">
+          <Link to="/login" className="rounded-full bg-primary px-8 py-3.5 text-[15px] font-medium text-white hover:opacity-90 transition inline-flex items-center gap-2">
+            Start Your First Mission
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+            </svg>
+          </Link>
+          <div className="flex items-center gap-2 text-[13px] text-foreground/70">
+            <svg className="h-4 w-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+            </svg>
+            No credit card required
           </div>
-        ))}
-      </div>
+        </div>
+      </div> */}
     </section>
   );
 }
@@ -744,15 +786,13 @@ function Teams() {
 function CTA() {
   return (
     <section className="mx-auto max-w-7xl px-6 pb-24">
-      <div className="rounded-[2rem] bg-ink p-12 text-white md:p-16">
+      <div className="rounded-[2rem] bg-ink p-12 text-white md:p-16 flex items-center justify-between">
         <h2 className="max-w-3xl font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em]">
-          Stop teaching cloud with slides.<br />Start grading on real infrastructure.
+          Stop memorizing cloud.<br />Start <span className="text-primary">building</span> it.
         </h2>
-        <div className="mt-10 flex flex-wrap items-center gap-3">
-          <Link to="/login" className="rounded-full bg-primary px-6 py-3.5 text-[15px] font-medium text-white hover:opacity-90">
-            Start a mission
-          </Link>
-        </div>
+        <Link to="/login" className="rounded-full bg-primary px-6 py-3.5 text-[15px] font-medium text-white hover:opacity-90 shrink-0">
+          Start a mission
+        </Link>
       </div>
     </section>
   );
@@ -763,7 +803,7 @@ function Footer() {
     <footer className="mx-auto max-w-7xl border-t border-border px-6 py-10">
       <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
         <Logo />
-        <p className="mono-label">© 2026 CLOUDFLIGHT — BUILT FOR ENGINEERS WHO SHIP</p>
+        <p className="mono-label">© 2026 PROPEL — BUILT FOR ENGINEERS WHO SHIP</p>
       </div>
     </footer>
   );
@@ -781,7 +821,6 @@ function Landing() {
       <DashboardShowcase />
       <OrbitSection />
       <HowItWorks />
-      <Teams />
       <CTA />
       <Footer />
     </main>
