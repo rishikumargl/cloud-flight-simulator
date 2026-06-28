@@ -92,22 +92,6 @@ function TrackCard({ track, selected, onSelect }: { track: any; selected: boolea
         <div className="text-[12px] text-foreground leading-snug">{track.description}</div>
       </div>
 
-      {/* spacer pushes progress to bottom */}
-      <div style={{ flex: 1 }} />
-
-      {/* progress — always at bottom */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-1.5">
-          <span className="mono-label">YOUR PROGRESS</span>
-          <span className="mono-label">{row ? `${row.completed}/${row.total}` : "—"}</span>
-        </div>
-        <div className="h-1 overflow-hidden rounded-full bg-muted">
-          <div
-            className="h-full rounded-full bg-primary transition-all duration-700"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </div>
     </button>
   );
 }
