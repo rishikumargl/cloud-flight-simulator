@@ -9,7 +9,6 @@ from uuid import UUID
 class RunEvaluationRequest(BaseModel):
     """Request to run evaluation on a session."""
 
-    session_id: str = Field(..., description="UUID of the challenge session")
     solution_description: Optional[str] = Field(None, description="Learner's explanation of their solution (max 1000 chars)")
 
 
