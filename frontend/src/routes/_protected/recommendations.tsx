@@ -24,6 +24,90 @@ const GAP_COLORS: Record<string, { bar: string; badge: string }> = {
   Low:    { bar: "#34a853", badge: "text-emerald-700 bg-emerald-50" },
 };
 
+const LEARNING_RESOURCES = {
+  compute: [
+    { name: "Google Cloud Compute Engine Docs", url: "https://cloud.google.com/compute/docs", icon: "📖" },
+    { name: "Linux Academy - GCP Fundamentals", url: "https://linuxacademy.com", icon: "🎓" },
+    { name: "A Cloud Guru - Compute Courses", url: "https://acloudguru.com", icon: "📚" },
+    { name: "Kubernetes.io Official Docs", url: "https://kubernetes.io/docs", icon: "⚙️" },
+  ],
+  storage: [
+    { name: "Google Cloud Storage Documentation", url: "https://cloud.google.com/storage/docs", icon: "📖" },
+    { name: "freeCodeCamp - Cloud Storage Tutorial", url: "https://freecodecamp.org", icon: "🎬" },
+    { name: "Coursera - Google Cloud Storage", url: "https://coursera.org", icon: "📚" },
+    { name: "Cloud Storage Best Practices", url: "https://cloud.google.com/storage/docs/best-practices", icon: "✓" },
+  ],
+  networking: [
+    { name: "Google Cloud Networking Guide", url: "https://cloud.google.com/network", icon: "📖" },
+    { name: "Professor Messer - Networking Fundamentals", url: "https://professormesser.com", icon: "🎓" },
+    { name: "Cisco Learning Network", url: "https://learningnetwork.cisco.com", icon: "🌐" },
+    { name: "VPC and Firewall Best Practices", url: "https://cloud.google.com/vpc/docs/best-practices", icon: "✓" },
+  ],
+  security: [
+    { name: "Google Cloud Security Best Practices", url: "https://cloud.google.com/security", icon: "📖" },
+    { name: "OWASP Top 10", url: "https://owasp.org/www-project-top-ten", icon: "🔒" },
+    { name: "TryHackMe - Security Training", url: "https://tryhackme.com", icon: "🎯" },
+    { name: "HackTheBox - Penetration Testing", url: "https://hackthebox.com", icon: "🔓" },
+  ],
+  iam: [
+    { name: "Google Cloud IAM Documentation", url: "https://cloud.google.com/iam/docs", icon: "📖" },
+    { name: "IAM Best Practices Guide", url: "https://cloud.google.com/iam/docs/best-practices", icon: "✓" },
+    { name: "Pluralsight - Identity and Access Management", url: "https://pluralsight.com", icon: "📚" },
+    { name: "Google Cloud Architecture Framework", url: "https://cloud.google.com/architecture/framework", icon: "🏗️" },
+  ],
+};
+
+const MOCK_RECOMMENDATIONS = {
+  currentLevel: "Intermediate",
+  suggestedPath: [
+    {
+      id: 1,
+      title: "Advanced VPC Architecture",
+      track: "networking",
+      difficulty: "advanced",
+      reason: "Build on your strong networking foundation. Design multi-region VPC with advanced routing.",
+    },
+    {
+      id: 2,
+      title: "Kubernetes on GKE",
+      track: "compute",
+      difficulty: "advanced",
+      reason: "Your compute skills are strong. Master container orchestration on Google Cloud.",
+    },
+    {
+      id: 3,
+      title: "Cloud Security & Compliance",
+      track: "security",
+      difficulty: "intermediate",
+      reason: "Strengthen your security posture with IAM, encryption, and compliance frameworks.",
+    },
+  ],
+  skillGaps: [
+    {
+      skill: "Kubernetes & Container Orchestration",
+      gap: "High",
+      suggestion: "You haven't worked with Kubernetes yet. Start with GKE basics to master container management.",
+    },
+    {
+      skill: "Advanced Networking",
+      gap: "Medium",
+      suggestion: "Good VPC knowledge. Explore hybrid connectivity, VPN, and interconnect patterns.",
+    },
+    {
+      skill: "Infrastructure as Code (Terraform)",
+      gap: "High",
+      suggestion: "Learn Terraform to automate infrastructure. Open-source and highly valued skill.",
+    },
+  ],
+  insights: [
+    "You're progressing well! Your compute and storage skills are above average.",
+    "Focus on Kubernetes next - it's a high-demand skill that complements your foundation.",
+    "Consider learning Terraform for infrastructure automation to round out your DevOps skills.",
+    "Your networking knowledge is solid. Advanced VPC patterns will open enterprise opportunities.",
+    "Security best practices should be integrated into every challenge - make it a habit.",
+  ],
+};
+
 function useFadeUp() {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
@@ -49,8 +133,8 @@ function RecommendationsPage() {
   useEffect(() => {
     // Note: api.getRecommendations() returns empty array by design
     // Recommendations come from evaluation response after completing a mission
-    // For now, show placeholder until backend exposes recommendations differently
-    setRecs(null);
+    // For demo: use mock recommendations
+    setRecs(MOCK_RECOMMENDATIONS);
     setLoading(false);
   }, []);
 
@@ -206,6 +290,43 @@ function RecommendationsPage() {
             </li>
           ))}
         </ul>
+      </div>
+
+      {/* Learning Resources */}
+      <div ref={stepsRef.ref}
+        className={`rounded-2xl border border-border bg-surface p-7 transition-all duration-700 ${stepsRef.visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+        <div className="flex items-center gap-2 mb-5">
+          <span className="text-2xl">📚</span>
+          <div className="font-display text-[18px] font-semibold text-ink">Recommended Learning Resources</div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {Object.entries(LEARNING_RESOURCES).map(([track, resources]) => (
+            <div key={track} className="space-y-3">
+              <div className="font-semibold text-ink capitalize text-[14px] text-primary">{track}</div>
+              <div className="space-y-2">
+                {resources.map((resource, idx) => (
+                  <a
+                    key={idx}
+                    href={resource.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-primary/5 transition-all duration-200 group">
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg shrink-0">{resource.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-medium text-ink group-hover:text-primary truncate">
+                          {resource.name}
+                        </p>
+                        <p className="text-[11px] text-foreground/50 truncate mt-0.5">{resource.url}</p>
+                      </div>
+                      <span className="text-primary opacity-0 group-hover:opacity-100 transition-opacity shrink-0">→</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Next steps */}
