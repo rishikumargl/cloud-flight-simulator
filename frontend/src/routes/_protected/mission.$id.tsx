@@ -609,7 +609,7 @@ function MissionPage() {
       if (res.evaluation?.status) {
         sessionStorage.setItem("cf_current_evaluation", JSON.stringify(res));
         setTimeout(() => {
-          navigate({ to: `/feedback/${res.evaluation?.evaluation_id || session_id}` });
+          navigate({ to: `/feedback/${session_id}` });
         }, 1500);
       }
     } catch (err: any) {

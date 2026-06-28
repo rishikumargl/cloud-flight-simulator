@@ -70,9 +70,15 @@ function FeedbackPage() {
           return;
         }
 
-        // Fallback: Try to load from API using session_id
+        // Fallback: Try to load from API using session_id (id is the session_id from URL)
         const result = await (api as any).getEvaluation(id);
-        if (result) {
+        if (result?.evaluation) {
+          // Normalize the response to match our expected format
+          setEvaluation({
+            evaluation: result,
+            analytics: {},
+          });
+        } else if (result) {
           setEvaluation(result);
         } else {
           setError("Evaluation not found");
