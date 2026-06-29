@@ -132,7 +132,13 @@ class EvaluationService:
             # Check 1: Metadata validation
             expected_metadata = expected_state.get("metadata")
             if expected_metadata is not None:
-                if expected_metadata != live_metadata:
+                # Verify all expected keys are present with correct values
+                # Extra keys in live_metadata are allowed
+                metadata_mismatch = any(
+                    live_metadata.get(key) != value
+                    for key, value in expected_metadata.items()
+                )
+                if metadata_mismatch:
                     passed = False
                     details.append(
                         f"Metadata mismatch. Expected: {expected_metadata}, "
