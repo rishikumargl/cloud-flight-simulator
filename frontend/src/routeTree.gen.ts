@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,8 +20,21 @@ import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dash
 import { Route as ProtectedChallengesRouteImport } from './routes/_protected/challenges'
 import { Route as ProtectedResultsIdRouteImport } from './routes/_protected/results.$id'
 import { Route as ProtectedMissionIdRouteImport } from './routes/_protected/mission.$id'
+import { Route as ProtectedFeedbackIdRouteImport } from './routes/_protected/feedback.$id'
+import { Route as ProtectedAdminSessionsRouteImport } from './routes/_protected/admin/sessions'
+import { Route as ProtectedAdminPolicyRouteImport } from './routes/_protected/admin/policy'
+import { Route as ProtectedAdminPlaygroundRouteImport } from './routes/_protected/admin/playground'
+import { Route as ProtectedAdminMissionsRouteImport } from './routes/_protected/admin/missions'
+import { Route as ProtectedAdminLearnersRouteImport } from './routes/_protected/admin/learners'
+import { Route as ProtectedAdminFailuresRouteImport } from './routes/_protected/admin/failures'
 import { Route as ProtectedAdminDashboardRouteImport } from './routes/_protected/admin/dashboard'
+import { Route as ProtectedAdmin_layoutRouteImport } from './routes/_protected/admin/__layout'
 
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -71,33 +85,92 @@ const ProtectedMissionIdRoute = ProtectedMissionIdRouteImport.update({
   path: '/mission/$id',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedFeedbackIdRoute = ProtectedFeedbackIdRouteImport.update({
+  id: '/feedback/$id',
+  path: '/feedback/$id',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdminSessionsRoute = ProtectedAdminSessionsRouteImport.update({
+  id: '/admin/sessions',
+  path: '/admin/sessions',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdminPolicyRoute = ProtectedAdminPolicyRouteImport.update({
+  id: '/admin/policy',
+  path: '/admin/policy',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdminPlaygroundRoute =
+  ProtectedAdminPlaygroundRouteImport.update({
+    id: '/admin/playground',
+    path: '/admin/playground',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
+const ProtectedAdminMissionsRoute = ProtectedAdminMissionsRouteImport.update({
+  id: '/admin/missions',
+  path: '/admin/missions',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdminLearnersRoute = ProtectedAdminLearnersRouteImport.update({
+  id: '/admin/learners',
+  path: '/admin/learners',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdminFailuresRoute = ProtectedAdminFailuresRouteImport.update({
+  id: '/admin/failures',
+  path: '/admin/failures',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedAdminDashboardRoute = ProtectedAdminDashboardRouteImport.update({
   id: '/admin/dashboard',
   path: '/admin/dashboard',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdmin_layoutRoute = ProtectedAdmin_layoutRouteImport.update({
+  id: '/admin/__layout',
+  path: '/admin',
   getParentRoute: () => ProtectedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/challenges': typeof ProtectedChallengesRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/history': typeof ProtectedHistoryRoute
   '/progress': typeof ProtectedProgressRoute
   '/recommendations': typeof ProtectedRecommendationsRoute
+  '/admin': typeof ProtectedAdmin_layoutRoute
   '/admin/dashboard': typeof ProtectedAdminDashboardRoute
+  '/admin/failures': typeof ProtectedAdminFailuresRoute
+  '/admin/learners': typeof ProtectedAdminLearnersRoute
+  '/admin/missions': typeof ProtectedAdminMissionsRoute
+  '/admin/playground': typeof ProtectedAdminPlaygroundRoute
+  '/admin/policy': typeof ProtectedAdminPolicyRoute
+  '/admin/sessions': typeof ProtectedAdminSessionsRoute
+  '/feedback/$id': typeof ProtectedFeedbackIdRoute
   '/mission/$id': typeof ProtectedMissionIdRoute
   '/results/$id': typeof ProtectedResultsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/challenges': typeof ProtectedChallengesRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/history': typeof ProtectedHistoryRoute
   '/progress': typeof ProtectedProgressRoute
   '/recommendations': typeof ProtectedRecommendationsRoute
+  '/admin': typeof ProtectedAdmin_layoutRoute
   '/admin/dashboard': typeof ProtectedAdminDashboardRoute
+  '/admin/failures': typeof ProtectedAdminFailuresRoute
+  '/admin/learners': typeof ProtectedAdminLearnersRoute
+  '/admin/missions': typeof ProtectedAdminMissionsRoute
+  '/admin/playground': typeof ProtectedAdminPlaygroundRoute
+  '/admin/policy': typeof ProtectedAdminPolicyRoute
+  '/admin/sessions': typeof ProtectedAdminSessionsRoute
+  '/feedback/$id': typeof ProtectedFeedbackIdRoute
   '/mission/$id': typeof ProtectedMissionIdRoute
   '/results/$id': typeof ProtectedResultsIdRoute
 }
@@ -106,12 +179,21 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
   '/login': typeof LoginRoute
+  '/signup': typeof SignupRoute
   '/_protected/challenges': typeof ProtectedChallengesRoute
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/history': typeof ProtectedHistoryRoute
   '/_protected/progress': typeof ProtectedProgressRoute
   '/_protected/recommendations': typeof ProtectedRecommendationsRoute
+  '/_protected/admin/__layout': typeof ProtectedAdmin_layoutRoute
   '/_protected/admin/dashboard': typeof ProtectedAdminDashboardRoute
+  '/_protected/admin/failures': typeof ProtectedAdminFailuresRoute
+  '/_protected/admin/learners': typeof ProtectedAdminLearnersRoute
+  '/_protected/admin/missions': typeof ProtectedAdminMissionsRoute
+  '/_protected/admin/playground': typeof ProtectedAdminPlaygroundRoute
+  '/_protected/admin/policy': typeof ProtectedAdminPolicyRoute
+  '/_protected/admin/sessions': typeof ProtectedAdminSessionsRoute
+  '/_protected/feedback/$id': typeof ProtectedFeedbackIdRoute
   '/_protected/mission/$id': typeof ProtectedMissionIdRoute
   '/_protected/results/$id': typeof ProtectedResultsIdRoute
 }
@@ -120,24 +202,42 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/signup'
     | '/challenges'
     | '/dashboard'
     | '/history'
     | '/progress'
     | '/recommendations'
+    | '/admin'
     | '/admin/dashboard'
+    | '/admin/failures'
+    | '/admin/learners'
+    | '/admin/missions'
+    | '/admin/playground'
+    | '/admin/policy'
+    | '/admin/sessions'
+    | '/feedback/$id'
     | '/mission/$id'
     | '/results/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
+    | '/signup'
     | '/challenges'
     | '/dashboard'
     | '/history'
     | '/progress'
     | '/recommendations'
+    | '/admin'
     | '/admin/dashboard'
+    | '/admin/failures'
+    | '/admin/learners'
+    | '/admin/missions'
+    | '/admin/playground'
+    | '/admin/policy'
+    | '/admin/sessions'
+    | '/feedback/$id'
     | '/mission/$id'
     | '/results/$id'
   id:
@@ -145,12 +245,21 @@ export interface FileRouteTypes {
     | '/'
     | '/_protected'
     | '/login'
+    | '/signup'
     | '/_protected/challenges'
     | '/_protected/dashboard'
     | '/_protected/history'
     | '/_protected/progress'
     | '/_protected/recommendations'
+    | '/_protected/admin/__layout'
     | '/_protected/admin/dashboard'
+    | '/_protected/admin/failures'
+    | '/_protected/admin/learners'
+    | '/_protected/admin/missions'
+    | '/_protected/admin/playground'
+    | '/_protected/admin/policy'
+    | '/_protected/admin/sessions'
+    | '/_protected/feedback/$id'
     | '/_protected/mission/$id'
     | '/_protected/results/$id'
   fileRoutesById: FileRoutesById
@@ -159,10 +268,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProtectedRoute: typeof ProtectedRouteWithChildren
   LoginRoute: typeof LoginRoute
+  SignupRoute: typeof SignupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -233,11 +350,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedMissionIdRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/feedback/$id': {
+      id: '/_protected/feedback/$id'
+      path: '/feedback/$id'
+      fullPath: '/feedback/$id'
+      preLoaderRoute: typeof ProtectedFeedbackIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/sessions': {
+      id: '/_protected/admin/sessions'
+      path: '/admin/sessions'
+      fullPath: '/admin/sessions'
+      preLoaderRoute: typeof ProtectedAdminSessionsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/policy': {
+      id: '/_protected/admin/policy'
+      path: '/admin/policy'
+      fullPath: '/admin/policy'
+      preLoaderRoute: typeof ProtectedAdminPolicyRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/playground': {
+      id: '/_protected/admin/playground'
+      path: '/admin/playground'
+      fullPath: '/admin/playground'
+      preLoaderRoute: typeof ProtectedAdminPlaygroundRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/missions': {
+      id: '/_protected/admin/missions'
+      path: '/admin/missions'
+      fullPath: '/admin/missions'
+      preLoaderRoute: typeof ProtectedAdminMissionsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/learners': {
+      id: '/_protected/admin/learners'
+      path: '/admin/learners'
+      fullPath: '/admin/learners'
+      preLoaderRoute: typeof ProtectedAdminLearnersRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/failures': {
+      id: '/_protected/admin/failures'
+      path: '/admin/failures'
+      fullPath: '/admin/failures'
+      preLoaderRoute: typeof ProtectedAdminFailuresRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/admin/dashboard': {
       id: '/_protected/admin/dashboard'
       path: '/admin/dashboard'
       fullPath: '/admin/dashboard'
       preLoaderRoute: typeof ProtectedAdminDashboardRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/__layout': {
+      id: '/_protected/admin/__layout'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof ProtectedAdmin_layoutRouteImport
       parentRoute: typeof ProtectedRoute
     }
   }
@@ -249,7 +422,15 @@ interface ProtectedRouteChildren {
   ProtectedHistoryRoute: typeof ProtectedHistoryRoute
   ProtectedProgressRoute: typeof ProtectedProgressRoute
   ProtectedRecommendationsRoute: typeof ProtectedRecommendationsRoute
+  ProtectedAdmin_layoutRoute: typeof ProtectedAdmin_layoutRoute
   ProtectedAdminDashboardRoute: typeof ProtectedAdminDashboardRoute
+  ProtectedAdminFailuresRoute: typeof ProtectedAdminFailuresRoute
+  ProtectedAdminLearnersRoute: typeof ProtectedAdminLearnersRoute
+  ProtectedAdminMissionsRoute: typeof ProtectedAdminMissionsRoute
+  ProtectedAdminPlaygroundRoute: typeof ProtectedAdminPlaygroundRoute
+  ProtectedAdminPolicyRoute: typeof ProtectedAdminPolicyRoute
+  ProtectedAdminSessionsRoute: typeof ProtectedAdminSessionsRoute
+  ProtectedFeedbackIdRoute: typeof ProtectedFeedbackIdRoute
   ProtectedMissionIdRoute: typeof ProtectedMissionIdRoute
   ProtectedResultsIdRoute: typeof ProtectedResultsIdRoute
 }
@@ -260,7 +441,15 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedHistoryRoute: ProtectedHistoryRoute,
   ProtectedProgressRoute: ProtectedProgressRoute,
   ProtectedRecommendationsRoute: ProtectedRecommendationsRoute,
+  ProtectedAdmin_layoutRoute: ProtectedAdmin_layoutRoute,
   ProtectedAdminDashboardRoute: ProtectedAdminDashboardRoute,
+  ProtectedAdminFailuresRoute: ProtectedAdminFailuresRoute,
+  ProtectedAdminLearnersRoute: ProtectedAdminLearnersRoute,
+  ProtectedAdminMissionsRoute: ProtectedAdminMissionsRoute,
+  ProtectedAdminPlaygroundRoute: ProtectedAdminPlaygroundRoute,
+  ProtectedAdminPolicyRoute: ProtectedAdminPolicyRoute,
+  ProtectedAdminSessionsRoute: ProtectedAdminSessionsRoute,
+  ProtectedFeedbackIdRoute: ProtectedFeedbackIdRoute,
   ProtectedMissionIdRoute: ProtectedMissionIdRoute,
   ProtectedResultsIdRoute: ProtectedResultsIdRoute,
 }
@@ -273,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProtectedRoute: ProtectedRouteWithChildren,
   LoginRoute: LoginRoute,
+  SignupRoute: SignupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

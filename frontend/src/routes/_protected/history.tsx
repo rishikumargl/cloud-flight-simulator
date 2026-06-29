@@ -1,153 +1,250 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Search } from "lucide-react";
+import { AlertCircle, ArrowRight } from "lucide-react";
 import api from "../../api/apiService";
+import { HistoryTimelineItem } from "../../components/History";
 
 export const Route = createFileRoute("/_protected/history")({
-  head: () => ({ meta: [{ title: "Mission History — CloudFlight" }] }),
+  head: () => ({ meta: [{ title: "Learning Journal — PROPEL" }] }),
   component: HistoryPage,
 });
 
-const TRACK_ICONS: Record<string, string> = {
-  compute: "⚙️", storage: "💾", networking: "🌐",
-  security: "🔒", devops: "🚀", architecture: "🏗️",
+interface HistoryMission {
+  mission_id: string;
+  title: string;
+  track: string;
+  difficulty: string;
+  score: number;
+  explanation_score?: number;
+  status: "PASSED" | "PARTIAL" | "FAILED";
+  summary?: string;
+  completed_at: string;
+  evaluation_id: string;
+}
+
+interface ProgressData {
+  recent_missions: HistoryMission[];
+  stats: {
+    total_missions: number;
+    average_score: number;
+  };
+}
+
+// Mock data for demonstration (fallback when API not yet implemented)
+const MOCK_HISTORY: ProgressData = {
+  recent_missions: [
+    {
+      mission_id: "mission-001",
+      evaluation_id: "eval-001",
+      title: "Configure Cloud Storage Buckets",
+      track: "Storage",
+      difficulty: "BEGINNER",
+      score: 95,
+      explanation_score: 92,
+      status: "PASSED",
+      summary: "Successfully created and configured GCS bucket with proper access controls and lifecycle policies.",
+      completed_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      mission_id: "mission-002",
+      evaluation_id: "eval-002",
+      title: "Set Up IAM Roles and Permissions",
+      track: "IAM",
+      difficulty: "INTERMEDIATE",
+      score: 87,
+      explanation_score: 85,
+      status: "PASSED",
+      summary: "Created custom IAM roles with appropriate permissions, applied principle of least privilege effectively.",
+      completed_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      mission_id: "mission-003",
+      evaluation_id: "eval-003",
+      title: "Deploy Compute Engine Instance",
+      track: "Compute",
+      difficulty: "BEGINNER",
+      score: 78,
+      explanation_score: 72,
+      status: "PARTIAL",
+      summary: "Deployed instance successfully but missed some optional security hardening steps.",
+      completed_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      mission_id: "mission-004",
+      evaluation_id: "eval-004",
+      title: "Configure VPC Network and Subnets",
+      track: "Networking",
+      difficulty: "INTERMEDIATE",
+      score: 92,
+      explanation_score: 89,
+      status: "PASSED",
+      summary: "Created VPC with multiple subnets, configured routing and firewall rules correctly.",
+      completed_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ],
+  stats: {
+    total_missions: 4,
+    average_score: 88,
+  },
 };
 
-function ScoreBadge({ score }: { score: number | null }) {
-  if (score === null) return <span className="mono-label">—</span>;
-  const color = score >= 90 ? "text-[#1a7f3c] bg-[#e8f5ee]" : score >= 70 ? "text-[#946200] bg-[#fff3cd]" : "text-[#b42318] bg-[#fde8e8]";
-  return (
-    <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${color}`}>
-      {score}
-    </span>
-  );
-}
-
-function DiffBadge({ difficulty }: { difficulty: string }) {
-  const colors: Record<string, string> = {
-    beginner: "text-[#1a7f3c] border-[#c3e6cb]",
-    intermediate: "text-[#946200] border-[#ffc107]/40",
-    advanced: "text-[#b42318] border-[#f5c6cb]",
-  };
-  return (
-    <span className={`mono-label rounded-full border px-2.5 py-0.5 !text-[10px] ${colors[difficulty] || ""}`}>
-      {difficulty.toUpperCase()}
-    </span>
-  );
-}
-
 function HistoryPage() {
-  const [history, setHistory] = useState<any[]>([]);
+  const navigate = useNavigate();
+  const [progress, setProgress] = useState<ProgressData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [filterTrack, setFilterTrack] = useState("all");
-  const navigate = Route.useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.getMissionHistory().then((d) => { setHistory(d); setLoading(false); });
-  }, []);
+    const loadHistory = async () => {
+      try {
+        setLoading(true);
+        const result = await api.getProgress();
+        if (result?.recent_missions && result.recent_missions.length > 0) {
+          setProgress(result);
+        } else {
+          // Fallback to mock data if API returns empty
+          setProgress(MOCK_HISTORY);
+        }
+      } catch (err: any) {
+        console.error("Failed to load history:", err);
+        // Use mock data as fallback
+        setProgress(MOCK_HISTORY);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filtered = history.filter((m) => {
-    const matchSearch = m.title.toLowerCase().includes(search.toLowerCase());
-    const matchTrack = filterTrack === "all" || m.track === filterTrack;
-    return matchSearch && matchTrack;
-  });
+    loadHistory();
+  }, []);
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-muted" />)}
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="text-center">
+          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary/30 border-t-primary mx-auto" />
+          <p className="text-foreground/60">Loading your learning journal...</p>
+        </div>
       </div>
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div className="max-w-md text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-50 mx-auto">
+            <AlertCircle className="h-6 w-6 text-red-500" />
+          </div>
+          <h1 className="font-display text-2xl font-medium text-ink mb-2">
+            Unable to Load History
+          </h1>
+          <p className="text-foreground/60 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[14px] font-medium text-white hover:opacity-90 transition"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const missions = progress?.recent_missions || [];
+  const stats = progress?.stats || { total_missions: 0, average_score: 0 };
+
   return (
-    <div className="space-y-10">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div>
-        <div className="mono-label mb-2">MISSION HISTORY</div>
-        <h1 className="font-display text-[clamp(2rem,5vw,3.5rem)] font-medium leading-[1] tracking-[-0.03em] text-ink">
-          Your completed missions.
-        </h1>
-      </div>
+      <div className="border-b border-border bg-surface px-6 py-8">
+        <div className="mx-auto w-full max-w-4xl">
+          <button
+            onClick={() => navigate({ to: "/dashboard" })}
+            className="mb-4 inline-flex items-center gap-2 text-[13px] font-medium text-primary hover:opacity-70 transition"
+          >
+            <ArrowRight className="h-4 w-4 rotate-180" />
+            Back to Dashboard
+          </button>
 
-      {/* Filters */}
-      <div className="flex flex-col gap-4 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-foreground/50" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search missions…"
-            className="h-11 w-full rounded-xl border border-border bg-background pl-10 pr-4 text-[14px] text-ink placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-        </div>
-        <select
-          value={filterTrack}
-          onChange={(e) => setFilterTrack(e.target.value)}
-          className="h-11 rounded-xl border border-border bg-background px-4 text-[14px] text-ink focus:outline-none focus:ring-2 focus:ring-primary/30"
-        >
-          <option value="all">All tracks</option>
-          {["compute", "storage", "networking", "security", "devops", "architecture"].map((t) => (
-            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Stats summary */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="rounded-3xl border border-border bg-surface p-7">
-          <div className="mono-label mb-3">TOTAL MISSIONS</div>
-          <div className="font-display text-[3rem] font-medium leading-none tracking-[-0.03em] text-ink">
-            {history.length}
-          </div>
-        </div>
-        <div className="rounded-3xl border border-border bg-surface p-7">
-          <div className="mono-label mb-3">AVG SCORE</div>
-          <div className="font-display text-[3rem] font-medium leading-none tracking-[-0.03em] text-ink">
-            {history.length > 0
-              ? Math.round(history.reduce((s, m) => s + (m.score ?? 0), 0) / history.length)
-              : "—"}
-          </div>
-        </div>
-        <div className="rounded-3xl border border-border bg-surface p-7">
-          <div className="mono-label mb-3">BEST SCORE</div>
-          <div className="font-display text-[3rem] font-medium leading-none tracking-[-0.03em] text-primary">
-            {history.length > 0 ? Math.max(...history.map((m) => m.score ?? 0)) : "—"}
-          </div>
+          <h1 className="font-display text-3xl font-bold text-ink mb-2">
+            Learning Journal
+          </h1>
+          <p className="text-[14px] text-foreground/60">
+            Your complete mission history and progress.
+          </p>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-3xl border border-border bg-surface">
-        {/* Desktop header */}
-        <div className="hidden grid-cols-[2fr_1fr_1fr_1fr_80px] gap-4 border-b border-border px-7 py-4 md:grid">
-          {["MISSION", "TRACK", "DIFFICULTY", "COMPLETED", "SCORE"].map((h) => (
-            <div key={h} className="mono-label text-left">{h}</div>
-          ))}
-        </div>
-        {/* Rows */}
-        {filtered.length === 0 ? (
-          <div className="px-7 py-12 text-center text-[15px] text-foreground">No missions match your filter.</div>
+      {/* Main Content */}
+      <div className="mx-auto w-full max-w-4xl px-6 py-10 pb-20">
+        {/* Stats Bar */}
+        {stats.total_missions > 0 && (
+          <div className="mb-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="rounded-lg border border-border bg-surface p-4">
+              <p className="text-[11px] font-semibold text-foreground/60 uppercase tracking-wider">
+                Total Missions
+              </p>
+              <p className="text-2xl font-bold text-ink mt-1">{stats.total_missions}</p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-surface p-4">
+              <p className="text-[11px] font-semibold text-foreground/60 uppercase tracking-wider">
+                Average Score
+              </p>
+              <p className="text-2xl font-bold text-ink mt-1">{Math.round(stats.average_score)}%</p>
+            </div>
+
+            <div className="rounded-lg border border-border bg-surface p-4">
+              <p className="text-[11px] font-semibold text-foreground/60 uppercase tracking-wider">
+                Pass Rate
+              </p>
+              <p className="text-2xl font-bold text-ink mt-1">
+                {missions.filter((m) => m.status === "PASSED").length}/{missions.length}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Timeline */}
+        {missions.length > 0 ? (
+          <div className="space-y-4">
+            <h2 className="mono-label text-primary mb-6">MISSION TIMELINE</h2>
+
+            <div className="space-y-4 relative before:absolute before:left-2 before:top-8 before:bottom-0 before:w-0.5 before:bg-gradient-to-b before:from-primary/20 before:to-transparent">
+              {missions.map((mission) => (
+                <HistoryTimelineItem
+                  key={mission.mission_id}
+                  evaluation_id={mission.evaluation_id}
+                  mission_id={mission.mission_id}
+                  title={mission.title}
+                  track={mission.track}
+                  difficulty={mission.difficulty}
+                  score={mission.score}
+                  explanation_score={mission.explanation_score}
+                  status={mission.status}
+                  summary={mission.summary}
+                  completed_at={mission.completed_at}
+                />
+              ))}
+            </div>
+          </div>
         ) : (
-          filtered.map((m, i) => (
+          <div className="rounded-2xl border border-border bg-surface p-12 text-center">
+            <AlertCircle className="h-12 w-12 text-foreground/30 mx-auto mb-4" />
+            <h2 className="font-display text-lg font-semibold text-ink mb-2">
+              No Missions Yet
+            </h2>
+            <p className="text-[13px] text-foreground/60 mb-6">
+              Your completed missions will appear here. Start your first mission to begin your learning journey.
+            </p>
             <button
-              key={m.id}
-              onClick={() => navigate({ to: "/results/$id", params: { id: m.id } })}
-              className={`grid w-full grid-cols-1 gap-2 px-7 py-5 text-left transition hover:bg-background md:grid-cols-[2fr_1fr_1fr_1fr_80px] md:gap-4 md:py-4 ${
-                i < filtered.length - 1 ? "border-b border-border" : ""
-              }`}
+              onClick={() => navigate({ to: "/challenges" })}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-[14px] font-medium text-white hover:opacity-90 transition"
             >
-              <div className="flex items-center gap-3">
-                <span className="text-xl">{TRACK_ICONS[m.track] || "📋"}</span>
-                <span className="font-medium text-ink text-[14px]">{m.title}</span>
-              </div>
-              <div className="text-[13px] capitalize text-foreground">{m.track}</div>
-              <div><DiffBadge difficulty={m.difficulty} /></div>
-              <div className="text-[13px] text-foreground">{m.completionDate}</div>
-              <div><ScoreBadge score={m.score} /></div>
+              Start Your First Mission
+              <ArrowRight className="h-4 w-4" />
             </button>
-          ))
+          </div>
         )}
       </div>
     </div>

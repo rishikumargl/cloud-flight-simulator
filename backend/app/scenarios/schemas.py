@@ -1,9 +1,38 @@
 """MissionSchema — contract produced by P3, consumed by P1, P4, P5."""
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
 from datetime import datetime
+
+
+class FaultConfiguration(BaseModel):
+    """Fault configuration for incident-response missions.
+
+    Defines a deliberate flaw injected into the provisioned VM.
+    Learner must repair the fault to pass the criterion.
+    """
+
+    type: str = Field(
+        ...,
+        description="Fault type: STARTUP_SCRIPT_CRASH, CORRUPT_METADATA, MISCONFIGURED_TAGS"
+    )
+    payload: Optional[Dict[str, Any] | list | str] = Field(
+        default=None,
+        description="Fault-specific payload (dict for CORRUPT_METADATA, list for MISCONFIGURED_TAGS, str for STARTUP_SCRIPT_CRASH)"
+    )
+    description: Optional[str] = Field(
+        default=None,
+        description="Human-readable explanation of the fault"
+    )
+
+    @field_validator("type")
+    def validate_type(cls, v):
+        """Ensure fault type is supported."""
+        allowed = ["STARTUP_SCRIPT_CRASH", "CORRUPT_METADATA", "MISCONFIGURED_TAGS"]
+        if v not in allowed:
+            raise ValueError(f"Unsupported fault type: {v}. Must be one of {allowed}")
+        return v
 
 
 class SuccessCriteria(BaseModel):
@@ -19,6 +48,10 @@ class SuccessCriteria(BaseModel):
         description="Expected state with name_suffix ONLY, never full resource names",
     )
     weight: int = Field(..., description="Weight of this criterion (0-100)")
+    fault_configuration: Optional[FaultConfiguration] = Field(
+        default=None,
+        description="Optional fault configuration for incident-response missions"
+    )
 
     @field_validator("expected_state")
     def validate_no_full_names(cls, v):
@@ -92,27 +125,63 @@ class MissionSchema(BaseModel):
                 "mission_id": "123e4567-e89b-12d3-a456-426614174000",
                 "track": "COMPUTE",
                 "difficulty": "BEGINNER",
-                "title": "Deploy a Public Web Server",
-                "business_context": "A startup needs a public-facing web server.",
-                "objectives": ["Create a VM", "Expose HTTP access"],
+                "title": "Fix the Misconfigured Web Server",
+                "business_context": "The production web server is unavailable due to incorrect metadata configuration. Investigate the GCP instance and restore the correct settings.",
+                "objectives": ["Identify the metadata issue", "Restore the correct app_tier value"],
                 "success_criteria": [
                     {
                         "criterion_id": "123e4567-e89b-12d3-a456-426614174001",
-                        "description": "VM exists",
+                        "description": "Repair the web server metadata",
                         "resource_type": "compute_instance",
-                        "expected_state": {"name_suffix": "web-01", "machine_type": "e2-micro"},
-                        "weight": 50,
-                    },
-                    {
-                        "criterion_id": "123e4567-e89b-12d3-a456-426614174002",
-                        "description": "HTTP firewall rule exists",
-                        "resource_type": "firewall_rule",
-                        "expected_state": {"name_suffix": "allow-http"},
-                        "weight": 50,
-                    },
+                        "expected_state": {
+                            "name_suffix": "web-01",
+                            "machine_type": "e2-micro",
+                            "metadata": {"app_tier": "frontend", "environment": "production"},
+                            "status": "RUNNING"
+                        },
+                        "weight": 100,
+                        "fault_configuration": {
+                            "type": "CORRUPT_METADATA",
+                            "payload": {"app_tier": "backend"},
+                            "description": "Metadata has incorrect app_tier value"
+                        }
+                    }
                 ],
                 "time_limit_minutes": 45,
                 "generated_by": "scenario-generator",
                 "created_at": "2026-06-22T10:30:00Z",
             }
         }
+
+
+class LearningProfileSchema(BaseModel):
+    """Learner profile with adaptive recommendations."""
+
+    user_id: str = Field(..., description="UUID of learner")
+    current_level: str = Field(..., description="Current difficulty: BEGINNER, INTERMEDIATE, ADVANCED")
+    confidence: float = Field(..., description="Confidence in skill level (0-100)")
+    strengths: List[str] = Field(..., description="Topics where learner excels")
+    weaknesses: List[str] = Field(..., description="Topics where learner struggles")
+    recommended_difficulty: str = Field(..., description="Recommended next difficulty")
+    recommended_track: str = Field(..., description="Recommended next track")
+    estimated_completion_time: int = Field(..., description="Estimated completion time in minutes")
+    coach_summary: str = Field(..., description="AI coaching summary for learner")
+    next_prompt: str = Field(..., description="LLM prompt to generate next mission")
+
+
+class RecommendationSchema(BaseModel):
+    """Recommendation for next mission."""
+
+    recommended_difficulty: str = Field(..., description="BEGINNER, INTERMEDIATE, or ADVANCED")
+    recommended_track: str = Field(..., description="COMPUTE or STORAGE")
+    reason: str = Field(..., description="Why this is recommended")
+    confidence: float = Field(..., description="Confidence score 0-100")
+    topics_to_focus: List[str] = Field(..., description="Key topics to practice")
+    estimated_completion_time: int = Field(..., description="Expected time in minutes")
+
+
+class GenerateScenarioRequest(BaseModel):
+    """Request to generate a new mission."""
+
+    track: str = Field(..., description="Track: COMPUTE or STORAGE")
+    difficulty: str = Field(..., description="Difficulty: BEGINNER, INTERMEDIATE, or ADVANCED")

@@ -9,7 +9,7 @@ from app.dependencies import get_db
 
 from .service import ScenarioService
 from .models import Mission
-from .schemas import MissionSchema
+from .schemas import MissionSchema, GenerateScenarioRequest
 
 router = APIRouter(prefix="/scenarios", tags=["scenarios"])
 
@@ -21,7 +21,7 @@ def get_scenario_service() -> ScenarioService:
 
 @router.post("/generate")
 async def generate_scenario(
-    request: dict,
+    request: GenerateScenarioRequest,
     current_user=Depends(get_current_user),
     db: Session = Depends(get_db),
     scenario_service: ScenarioService = Depends(get_scenario_service),
@@ -39,8 +39,8 @@ async def generate_scenario(
 
     Response: {"success": true, "data": MissionSchema}
     """
-    track = request.get("track")
-    difficulty = request.get("difficulty")
+    track = request.track
+    difficulty = request.difficulty
 
     if not track or not difficulty:
         return JSONResponse(
@@ -86,13 +86,16 @@ async def generate_scenario(
 
     except ValueError as e:
         db.rollback()
+        print(f"[VALIDATION_ERROR] {str(e)}")
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             content=error_response("VALIDATION_ERROR", str(e)),
         )
     except Exception as e:
         db.rollback()
-        print(f"[ERROR] generate_scenario failed: {e}")
+        print(f"[ERROR] generate_scenario failed: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=error_response("INTERNAL_ERROR", "Failed to generate scenario"),

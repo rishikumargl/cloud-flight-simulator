@@ -10,7 +10,7 @@ function Logo() {
       <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
         <path d="M4 22 L14 4 L24 22 L18 22 L14 14 L10 22 Z" fill="var(--primary)" />
       </svg>
-      <span className="text-lg font-semibold tracking-tight text-ink">cloudflight</span>
+      <span className="text-lg font-semibold tracking-tight text-ink">PROPEL</span>
     </div>
   );
 }
